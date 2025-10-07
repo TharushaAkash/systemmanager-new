@@ -285,8 +285,6 @@ export default function Customers() {
                             onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
                         >
                             <option value="CUSTOMER">👤 CUSTOMER</option>
-                            <option value="STAFF">👨‍💼 STAFF</option>
-                            <option value="ADMIN">👑 ADMIN</option>
                         </select>
                     </div>
                     

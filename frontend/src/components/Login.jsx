@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Login({ onRegister }) {
+export default function Login({ onRegister, onNavigate }) {
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,8 +16,13 @@ export default function Login({ onRegister }) {
         
         if (!result.success) {
             setError(result.error);
+        } else {
+            // Clear URL hash and navigate to dashboard on successful login
+            window.location.hash = '';
+            if (onNavigate) {
+                onNavigate('dashboard');
+            }
         }
-        // If successful, the AuthContext will handle the redirect
         setLoading(false);
     };
 
@@ -42,6 +47,20 @@ export default function Login({ onRegister }) {
                 maxWidth: '400px'
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    <button
+                        onClick={() => onNavigate && onNavigate('home')}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#1a73e8',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            marginBottom: '1rem',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        ← Back to Home
+                    </button>
                     <h1 style={{ color: '#333', margin: '0 0 0.5rem 0' }}>AutoFuel Lanka</h1>
                     <p style={{ color: '#666', margin: 0 }}>Sign in to your account</p>
                 </div>

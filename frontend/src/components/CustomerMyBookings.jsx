@@ -94,6 +94,7 @@ export default function CustomerMyBookings({ onNavigate }) {
                 vehicleId: parseInt(editForm.vehicleId),
                 locationId: parseInt(editForm.locationId),
                 type: "SERVICE",
+                serviceTypeId: editingBooking.serviceTypeId, // Include serviceTypeId for SERVICE bookings
                 startTime: `${editForm.preferredDate}T${editForm.preferredTime}:00`,
                 endTime: `${editForm.preferredDate}T${endHour.toString().padStart(2, "0")}:${editForm.preferredTime.split(":")[1]}:00`,
                 description: editForm.description,

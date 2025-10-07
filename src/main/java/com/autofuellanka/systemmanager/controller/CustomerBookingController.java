@@ -26,7 +26,7 @@ public class CustomerBookingController {
         this.validator = validator;
     }
 
-    // ----------------- CREATE BOOKING -----------------
+    //CREATE BOOKING
     @PostMapping
     public ResponseEntity<?> createBooking(@PathVariable Long customerId,
                                            @Valid @RequestBody BookingCreateRequest req) {
@@ -60,8 +60,11 @@ public class CustomerBookingController {
             booking.setCustomerId(customerId);
             booking.setLocationId(req.getLocationId());
             booking.setVehicleId(req.getVehicleId());
-            booking.setStartTime(req.getStartTime());
-            booking.setEndTime(req.getEndTime());
+            // Convert ISO format to MySQL format for datetime fields
+            String formattedStartTime = req.getStartTime().replace('T', ' ');
+            String formattedEndTime = req.getEndTime().replace('T', ' ');
+            booking.setStartTime(formattedStartTime);
+            booking.setEndTime(formattedEndTime);
             booking.setType(norm.type);
             booking.setStatus(norm.status != null ? norm.status : "PENDING");
             booking.setDescription(req.getDescription());
@@ -79,7 +82,14 @@ public class CustomerBookingController {
             }
 
             Booking saved = bookingRepo.save(booking);
-            return ResponseEntity.status(201).body(new BookingDTO(saved));
+            
+            // Fetch the saved booking with serviceType to avoid LazyInitializationException
+            var createdBooking = bookingRepo.findByIdWithServiceType(saved.getId());
+            if (createdBooking.isEmpty()) {
+                return ResponseEntity.status(500).body("Failed to retrieve created booking");
+            }
+            
+            return ResponseEntity.status(201).body(new BookingDTO(createdBooking.get()));
 
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(404).body(ex.getMessage());
@@ -91,14 +101,14 @@ public class CustomerBookingController {
         }
     }
 
-    // ----------------- LIST BOOKINGS -----------------
+    //LIST BOOKINGS
     // Inside listBookings()
     @GetMapping
     public ResponseEntity<?> listBookings(@PathVariable Long customerId) {
         try {
             validator.requireCustomer(customerId);
 
-            // Use fetch join to load serviceType to avoid LazyInitializationException
+            // Use fetch join to load serviceType
             List<Booking> bookings = bookingRepo.findByCustomerIdWithServiceType(customerId);
             List<BookingDTO> dtos = bookings.stream()
                     .map(BookingDTO::new)
@@ -114,14 +124,21 @@ public class CustomerBookingController {
     }
 
 
-    // ----------------- GET SINGLE BOOKING -----------------
+    //GET SINGLE BOOKING
     @GetMapping("/{id}")
     public ResponseEntity<?> getBooking(@PathVariable Long customerId, @PathVariable Long id) {
         try {
             validator.requireCustomer(customerId);
-            var optionalBooking = bookingRepo.findByIdAndCustomerId(id, customerId);
+            var optionalBooking = bookingRepo.findByIdWithServiceType(id);
             if (optionalBooking.isEmpty()) return ResponseEntity.status(404).body("Booking not found");
-            return ResponseEntity.ok(new BookingDTO(optionalBooking.get()));
+            
+            // Verify the booking belongs to the customer
+            Booking booking = optionalBooking.get();
+            if (!customerId.equals(booking.getCustomerId())) {
+                return ResponseEntity.status(404).body("Booking not found");
+            }
+            
+            return ResponseEntity.ok(new BookingDTO(booking));
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(404).body(ex.getMessage());
         } catch (Exception ex) {
@@ -130,7 +147,7 @@ public class CustomerBookingController {
         }
     }
 
-    // ----------------- UPDATE BOOKING -----------------
+    //UPDATE BOOKING
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable Long customerId,
                                            @PathVariable Long id,
@@ -144,21 +161,48 @@ public class CustomerBookingController {
             Booking existing = optionalBooking.get();
             var norm = validator.normalize(updates.type, null, updates.fuelType);
 
+            // Ensure serviceTypeId is not null for SERVICE bookings
+            Long finalServiceTypeId = updates.serviceTypeId != null ? updates.serviceTypeId : existing.getServiceTypeId();
+            String finalType = norm.type != null ? norm.type : existing.getType();
+            
+            // For SERVICE bookings, ensure serviceTypeId is not null
+            if ("SERVICE".equals(finalType) && finalServiceTypeId == null) {
+                return ResponseEntity.badRequest().body("serviceTypeId is required for SERVICE bookings");
+            }
+            
+            // Validate vehicle ownership if vehicleId is being updated
+            if (updates.vehicleId != null && !updates.vehicleId.equals(existing.getVehicleId())) {
+                validator.requireVehicleOwnedBy(updates.vehicleId, customerId);
+            }
+            
             String err = validator.validateCreateOrUpdate(
                     customerId,
                     updates.locationId != null ? updates.locationId : existing.getLocationId(),
-                    updates.serviceTypeId != null ? updates.serviceTypeId : existing.getServiceTypeId(),
+                    finalServiceTypeId,
                     updates.vehicleId != null ? updates.vehicleId : existing.getVehicleId(),
-                    norm.type != null ? norm.type : existing.getType(),
-                    existing.getStatus(),
+                    finalType,
+                    updates.status != null ? updates.status : existing.getStatus(),
                     norm.fuelType != null ? norm.fuelType : existing.getFuelType(),
                     updates.litersRequested != null ? updates.litersRequested : existing.getLitersRequested()
             );
             if (err != null) return ResponseEntity.badRequest().body(err);
 
-            if (updates.startTime != null) existing.setStartTime(updates.startTime);
-            if (updates.endTime != null) existing.setEndTime(updates.endTime);
+            if (updates.startTime != null) {
+                // Convert ISO format (2025-10-07T09:00:00) to MySQL format (2025-10-07 09:00:00)
+                String formattedStartTime = updates.startTime.replace('T', ' ');
+                existing.setStartTime(formattedStartTime);
+            }
+            if (updates.endTime != null) {
+                // Convert ISO format (2025-10-07T09:00:00) to MySQL format (2025-10-07 09:00:00)
+                String formattedEndTime = updates.endTime.replace('T', ' ');
+                existing.setEndTime(formattedEndTime);
+            }
+            
+            // Ensure critical fields are never null
+            if (existing.getStatus() == null) existing.setStatus("PENDING");
+            if (existing.getType() == null) existing.setType("SERVICE");
             if (norm.type != null) existing.setType(norm.type);
+            if (updates.status != null) existing.setStatus(updates.status);
             if (updates.locationId != null) existing.setLocationId(updates.locationId);
             if (updates.vehicleId != null) existing.setVehicleId(updates.vehicleId);
             if (norm.fuelType != null) existing.setFuelType(norm.fuelType);
@@ -173,7 +217,14 @@ public class CustomerBookingController {
             }
 
             Booking saved = bookingRepo.save(existing);
-            return ResponseEntity.ok(new BookingDTO(saved));
+            
+            // Fetch the saved booking with serviceType to avoid LazyInitializationException
+            var updatedBooking = bookingRepo.findByIdWithServiceType(saved.getId());
+            if (updatedBooking.isEmpty()) {
+                return ResponseEntity.status(500).body("Failed to retrieve updated booking");
+            }
+            
+            return ResponseEntity.ok(new BookingDTO(updatedBooking.get()));
 
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(404).body(ex.getMessage());
@@ -185,7 +236,7 @@ public class CustomerBookingController {
         }
     }
 
-    // ----------------- CANCEL BOOKING -----------------
+    //CANCEL BOOKING
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancel(@PathVariable Long customerId, @PathVariable Long id) {
         try {
@@ -200,7 +251,14 @@ public class CustomerBookingController {
 
             existing.setStatus("CANCELLED");
             Booking saved = bookingRepo.save(existing);
-            return ResponseEntity.ok(new BookingDTO(saved));
+            
+            // Fetch the saved booking with serviceType to avoid LazyInitializationException
+            var cancelledBooking = bookingRepo.findByIdWithServiceType(saved.getId());
+            if (cancelledBooking.isEmpty()) {
+                return ResponseEntity.status(500).body("Failed to retrieve cancelled booking");
+            }
+            
+            return ResponseEntity.ok(new BookingDTO(cancelledBooking.get()));
 
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(404).body(ex.getMessage());
@@ -212,7 +270,7 @@ public class CustomerBookingController {
         }
     }
 
-    // ----------------- UPDATE BOOKING STATUS -----------------
+    //UPDATE BOOKING STATUS
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(@PathVariable Long customerId,
                                           @PathVariable Long id,
@@ -229,7 +287,14 @@ public class CustomerBookingController {
 
             existing.setStatus(payload.status.toUpperCase());
             Booking saved = bookingRepo.save(existing);
-            return ResponseEntity.ok(new BookingDTO(saved));
+            
+            // Fetch the saved booking with serviceType to avoid LazyInitializationException
+            var updatedBooking = bookingRepo.findByIdWithServiceType(saved.getId());
+            if (updatedBooking.isEmpty()) {
+                return ResponseEntity.status(500).body("Failed to retrieve updated booking");
+            }
+            
+            return ResponseEntity.ok(new BookingDTO(updatedBooking.get()));
 
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(404).body(ex.getMessage());
@@ -241,7 +306,7 @@ public class CustomerBookingController {
         }
     }
 
-    // ----------------- HELPER -----------------
+    //HELPER
     private String up(String s) {
         return s == null ? null : s.trim().toUpperCase();
     }

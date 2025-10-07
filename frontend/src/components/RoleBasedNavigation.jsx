@@ -22,8 +22,9 @@ export default function RoleBasedNavigation({ onNavigate, currentPage }) {
                         jobsRes.json()
                     ]);
 
-                    // Count bookings that don't have jobs assigned yet
+                    // Count bookings that are CONFIRMED and don't have jobs assigned yet
                     const pending = bookingsData.filter(booking => 
+                        booking.status === 'CONFIRMED' && 
                         !jobsData.some(job => job.bookingId === booking.id)
                     ).length;
 
@@ -88,6 +89,7 @@ export default function RoleBasedNavigation({ onNavigate, currentPage }) {
         if (user?.role === "ADMIN") {
             items.push(
                 { key: "user-management", label: "User Management", roles: ["ADMIN"] },
+                { key: "customers", label: "Customer Management", roles: ["ADMIN"] },
                 { key: "operations-dashboard", label: "Operations Dashboard", roles: ["ADMIN"] }
             );
         }

@@ -28,7 +28,7 @@ public class StockMoveController {
     @Autowired
     private InventoryRepository inventoryRepository;
 
-    // Get all stock moves with pagination
+    // Get all stock moves
     @GetMapping("/moves")
     public Page<StockMove> getAllMoves(
             @RequestParam(defaultValue = "0") int page,

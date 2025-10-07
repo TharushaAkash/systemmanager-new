@@ -62,7 +62,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.status(401).body("Invalid credentials"));
     }
 
-    // --- LIST (sanity check that controller is mapped) ---
+    // LIST (sanity check that controller is mapped)
     @GetMapping
     public List<User> findAll() {
         List<User> all = userRepository.findAll();
@@ -71,7 +71,7 @@ public class UserController {
         return all;
     }
 
-    // --- CREATE USER ---
+    // CREATE USER
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody User user) {
         if (user.getEmail() == null || user.getEmail().isBlank()
@@ -121,7 +121,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // --- DELETE USER ---
+    //  DELETE USER
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {

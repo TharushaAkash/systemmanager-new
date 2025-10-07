@@ -1,70 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const API_BASE = "http://localhost:8080";
 
 export default function ServicesShowcase({ onNavigate }) {
     const [hoveredService, setHoveredService] = useState(null);
+    const [serviceTypes, setServiceTypes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const services = [
-        {
-            id: 1,
-            name: "Brake Repair",
-            description: "Complete brake system inspection, repair, and replacement services",
-            price: 15000,
-            icon: "🛞",
-            features: ["Brake pad replacement", "Brake fluid check", "Brake disc inspection", "Safety testing"],
-            duration: "2-3 hours",
-            category: "Safety"
-        },
-        {
-            id: 2,
-            name: "Full Body Painting",
-            description: "Professional automotive painting with premium quality finish",
-            price: 85000,
-            icon: "🎨",
-            features: ["Surface preparation", "Primer application", "Color matching", "Clear coat finish"],
-            duration: "3-5 days",
-            category: "Cosmetic"
-        },
-        {
-            id: 3,
-            name: "Accident Repair",
-            description: "Comprehensive collision repair and bodywork restoration",
-            price: 120000,
-            icon: "🔧",
-            features: ["Damage assessment", "Panel replacement", "Frame straightening", "Paint touch-up"],
-            duration: "5-7 days",
-            category: "Repair"
-        },
-        {
-            id: 4,
-            name: "Engine Tune-Up",
-            description: "Complete engine maintenance and performance optimization",
-            price: 25000,
-            icon: "⚙️",
-            features: ["Oil change", "Filter replacement", "Spark plug service", "Performance check"],
-            duration: "3-4 hours",
-            category: "Maintenance"
-        },
-        {
-            id: 5,
-            name: "Tire Services",
-            description: "Tire installation, balancing, and alignment services",
-            price: 8000,
-            icon: "🚗",
-            features: ["Tire mounting", "Wheel balancing", "Alignment check", "Pressure monitoring"],
-            duration: "1-2 hours",
-            category: "Maintenance"
-        },
-        {
-            id: 6,
-            name: "Air Conditioning",
-            description: "AC system repair, maintenance, and gas refilling",
-            price: 12000,
-            icon: "❄️",
-            features: ["Gas refilling", "Compressor check", "Filter cleaning", "Performance test"],
-            duration: "2-3 hours",
-            category: "Comfort"
+    // Load service types from database
+    const loadServiceTypes = async () => {
+        setLoading(true);
+        setError("");
+        try {
+            const response = await fetch(`${API_BASE}/api/service-types`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            setServiceTypes(data);
+        } catch (e) {
+            setError(`Failed to load services: ${e.message}`);
+            console.error("Error loading service types:", e);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    useEffect(() => {
+        loadServiceTypes();
+    }, []);
 
     const getCategoryColor = (category) => {
         const colors = {
@@ -77,10 +42,120 @@ export default function ServicesShowcase({ onNavigate }) {
         return colors[category] || "#6c757d";
     };
 
-    const handleBookService = (service) => {
-        // Navigate to booking form with service pre-selected
-        onNavigate('service-booking', { service });
+    // Helper functions to determine service properties from database service types
+    const getServiceCategory = (serviceName) => {
+        const name = serviceName.toLowerCase();
+        if (name.includes('brake') || name.includes('safety')) return "Safety";
+        if (name.includes('paint') || name.includes('body')) return "Cosmetic";
+        if (name.includes('accident') || name.includes('repair')) return "Repair";
+        if (name.includes('engine') || name.includes('tune') || name.includes('maintenance')) return "Maintenance";
+        if (name.includes('tire') || name.includes('wheel')) return "Maintenance";
+        if (name.includes('ac') || name.includes('air')) return "Comfort";
+        return "Service";
     };
+
+    const getServiceIcon = (serviceName) => {
+        const name = serviceName.toLowerCase();
+        if (name.includes('brake')) return "🛞";
+        if (name.includes('paint') || name.includes('body')) return "🎨";
+        if (name.includes('accident') || name.includes('repair')) return "🔧";
+        if (name.includes('engine')) return "⚙️";
+        if (name.includes('tire') || name.includes('wheel')) return "🚗";
+        if (name.includes('ac') || name.includes('air')) return "❄️";
+        return "🔧";
+    };
+
+    const getServiceFeatures = (serviceName) => {
+        const name = serviceName.toLowerCase();
+        if (name.includes('brake')) {
+            return ["Brake pad replacement", "Brake fluid check", "Brake disc inspection", "Safety testing"];
+        }
+        if (name.includes('paint') || name.includes('body')) {
+            return ["Surface preparation", "Primer application", "Color matching", "Clear coat finish"];
+        }
+        if (name.includes('accident') || name.includes('repair')) {
+            return ["Damage assessment", "Panel replacement", "Frame straightening", "Paint touch-up"];
+        }
+        if (name.includes('engine')) {
+            return ["Oil change", "Filter replacement", "Spark plug service", "Performance check"];
+        }
+        if (name.includes('tire') || name.includes('wheel')) {
+            return ["Tire mounting", "Wheel balancing", "Alignment check", "Pressure monitoring"];
+        }
+        if (name.includes('ac') || name.includes('air')) {
+            return ["Gas refilling", "Compressor check", "Filter cleaning", "Performance test"];
+        }
+        return ["Professional service", "Quality guarantee", "Expert technicians", "Fast turnaround"];
+    };
+
+    const getServiceDuration = (serviceName) => {
+        const name = serviceName.toLowerCase();
+        if (name.includes('brake')) return "2-3 hours";
+        if (name.includes('paint') || name.includes('body')) return "3-5 days";
+        if (name.includes('accident') || name.includes('repair')) return "5-7 days";
+        if (name.includes('engine')) return "3-4 hours";
+        if (name.includes('tire') || name.includes('wheel')) return "1-2 hours";
+        if (name.includes('ac') || name.includes('air')) return "2-3 hours";
+        return "2-4 hours";
+    };
+
+    const handleBookService = (serviceType) => {
+        // Navigate to booking form with service pre-selected
+        onNavigate('service-booking', { 
+            bookingType: 'SERVICE', 
+            selectedService: serviceType,
+            showTypeSelector: true 
+        });
+    };
+
+    const handleBookFuel = () => {
+        // Navigate to booking form for fuel
+        onNavigate('service-booking', { bookingType: 'FUEL', showTypeSelector: false });
+    };
+
+    if (loading) {
+        return (
+            <div style={{ 
+                display: "flex", 
+                justifyContent: "center", 
+                alignItems: "center", 
+                height: "400px",
+                fontSize: "18px",
+                color: "#666"
+            }}>
+                Loading services...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{ 
+                display: "flex", 
+                justifyContent: "center", 
+                alignItems: "center", 
+                height: "400px",
+                flexDirection: "column",
+                gap: "20px"
+            }}>
+                <div style={{ color: "#dc3545", fontSize: "18px" }}>⚠️ {error}</div>
+                <button 
+                    onClick={loadServiceTypes}
+                    style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#1a73e8",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "16px"
+                    }}
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
@@ -113,26 +188,201 @@ export default function ServicesShowcase({ onNavigate }) {
                 gap: "25px",
                 marginBottom: "40px"
             }}>
-                {services.map((service) => (
-                    <div
-                        key={service.id}
+                {/* Fuel Booking Card */}
+                <div
+                    style={{
+                        background: "white",
+                        borderRadius: "16px",
+                        padding: "25px",
+                        boxShadow: hoveredService === 'fuel' 
+                            ? "0 15px 35px rgba(0,0,0,0.15)" 
+                            : "0 8px 25px rgba(0,0,0,0.1)",
+                        border: `3px solid ${hoveredService === 'fuel' ? '#27ae60' : 'transparent'}`,
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        transform: hoveredService === 'fuel' ? "translateY(-8px) scale(1.02)" : "translateY(0) scale(1)",
+                        cursor: "pointer",
+                        position: "relative",
+                        overflow: "hidden"
+                    }}
+                    onMouseEnter={() => setHoveredService('fuel')}
+                    onMouseLeave={() => setHoveredService(null)}
+                >
+                    {/* Animated Background */}
+                    <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: "4px",
+                        background: `linear-gradient(90deg, #27ae60, #27ae60aa)`,
+                        transform: hoveredService === 'fuel' ? "scaleX(1)" : "scaleX(0)",
+                        transformOrigin: "left",
+                        transition: "transform 0.4s ease"
+                    }} />
+
+                    {/* Service Header */}
+                    <div style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "space-between",
+                        marginBottom: "15px"
+                    }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <div style={{ 
+                                fontSize: "2.5rem",
+                                transform: hoveredService === 'fuel' ? "rotate(10deg) scale(1.1)" : "rotate(0deg) scale(1)",
+                                transition: "transform 0.3s ease"
+                            }}>
+                                ⛽
+                            </div>
+                            <div>
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    color: "#1a1a1a",
+                                    fontSize: "1.4rem",
+                                    fontWeight: "600"
+                                }}>
+                                    Fuel Station Visit
+                                </h3>
+                                <span style={{
+                                    padding: "3px 8px",
+                                    borderRadius: "12px",
+                                    fontSize: "11px",
+                                    fontWeight: "600",
+                                    backgroundColor: "#27ae6020",
+                                    color: "#27ae60",
+                                    marginTop: "4px",
+                                    display: "inline-block"
+                                }}>
+                                    FUEL
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <p style={{ 
+                        color: "#666", 
+                        fontSize: "14px", 
+                        lineHeight: "1.5",
+                        marginBottom: "20px"
+                    }}>
+                        Book a visit to our fuel stations. Select your vehicle, fuel type, and preferred time for a quick refuel.
+                    </p>
+
+                    {/* Features */}
+                    <div style={{ marginBottom: "20px" }}>
+                        <h4 style={{ 
+                            color: "#333", 
+                            fontSize: "13px", 
+                            fontWeight: "600",
+                            marginBottom: "10px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px"
+                        }}>
+                            What's Included:
+                        </h4>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                            {["Petrol & Diesel Available", "Quick Service", "Professional Staff", "Clean Environment"].map((feature, index) => (
+                                <span
+                                    key={index}
+                                    style={{
+                                        padding: "4px 8px",
+                                        background: "#f8f9fa",
+                                        borderRadius: "6px",
+                                        fontSize: "12px",
+                                        color: "#495057",
+                                        border: "1px solid #e9ecef"
+                                    }}
+                                >
+                                    ✓ {feature}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Service Details */}
+                    <div style={{ 
+                        display: "flex", 
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "20px",
+                        padding: "12px",
+                        background: "#f8f9fa",
+                        borderRadius: "8px"
+                    }}>
+                        <div>
+                            <div style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Duration</div>
+                            <div style={{ fontSize: "14px", color: "#333", fontWeight: "600" }}>
+                                ⏱️ 15-30 minutes
+                            </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Starting from</div>
+                            <div style={{ 
+                                fontSize: "20px", 
+                                color: "#27ae60", 
+                                fontWeight: "700"
+                            }}>
+                                Market Rate
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Book Button */}
+                    <button
+                        onClick={handleBookFuel}
                         style={{
-                            background: "white",
-                            borderRadius: "16px",
-                            padding: "25px",
-                            boxShadow: hoveredService === service.id 
-                                ? "0 15px 35px rgba(0,0,0,0.15)" 
-                                : "0 8px 25px rgba(0,0,0,0.1)",
-                            border: `3px solid ${hoveredService === service.id ? getCategoryColor(service.category) : 'transparent'}`,
-                            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                            transform: hoveredService === service.id ? "translateY(-8px) scale(1.02)" : "translateY(0) scale(1)",
+                            width: "100%",
+                            padding: "14px 20px",
+                            border: "none",
+                            borderRadius: "10px",
+                            background: hoveredService === 'fuel' 
+                                ? "linear-gradient(135deg, #27ae60, #27ae60dd)"
+                                : "#27ae60",
+                            color: "white",
+                            fontSize: "16px",
+                            fontWeight: "600",
                             cursor: "pointer",
-                            position: "relative",
-                            overflow: "hidden"
+                            transition: "all 0.3s ease",
+                            transform: hoveredService === 'fuel' ? "translateY(-2px)" : "translateY(0)",
+                            boxShadow: hoveredService === 'fuel' 
+                                ? "0 8px 20px #27ae6040"
+                                : "0 4px 12px rgba(39, 174, 96, 0.3)"
                         }}
-                        onMouseEnter={() => setHoveredService(service.id)}
-                        onMouseLeave={() => setHoveredService(null)}
                     >
+                        ⛽ Book Fuel Station Visit
+                    </button>
+                </div>
+
+                {serviceTypes.map((serviceType) => {
+                    const serviceCategory = getServiceCategory(serviceType.name);
+                    const categoryColor = getCategoryColor(serviceCategory);
+                    const serviceIcon = getServiceIcon(serviceType.name);
+                    const serviceFeatures = getServiceFeatures(serviceType.name);
+                    const serviceDuration = getServiceDuration(serviceType.name);
+                    const displayPrice = serviceType.price || serviceType.basePrice || 0;
+
+                    return (
+                        <div
+                            key={serviceType.id}
+                            style={{
+                                background: "white",
+                                borderRadius: "16px",
+                                padding: "25px",
+                                boxShadow: hoveredService === serviceType.id 
+                                    ? "0 15px 35px rgba(0,0,0,0.15)" 
+                                    : "0 8px 25px rgba(0,0,0,0.1)",
+                                border: `3px solid ${hoveredService === serviceType.id ? categoryColor : 'transparent'}`,
+                                transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                                transform: hoveredService === serviceType.id ? "translateY(-8px) scale(1.02)" : "translateY(0) scale(1)",
+                                cursor: "pointer",
+                                position: "relative",
+                                overflow: "hidden"
+                            }}
+                            onMouseEnter={() => setHoveredService(serviceType.id)}
+                            onMouseLeave={() => setHoveredService(null)}
+                        >
                         {/* Animated Background */}
                         <div style={{
                             position: "absolute",
@@ -140,8 +390,8 @@ export default function ServicesShowcase({ onNavigate }) {
                             left: 0,
                             right: 0,
                             height: "4px",
-                            background: `linear-gradient(90deg, ${getCategoryColor(service.category)}, ${getCategoryColor(service.category)}aa)`,
-                            transform: hoveredService === service.id ? "scaleX(1)" : "scaleX(0)",
+                            background: `linear-gradient(90deg, ${categoryColor}, ${categoryColor}aa)`,
+                            transform: hoveredService === serviceType.id ? "scaleX(1)" : "scaleX(0)",
                             transformOrigin: "left",
                             transition: "transform 0.4s ease"
                         }} />
@@ -156,10 +406,10 @@ export default function ServicesShowcase({ onNavigate }) {
                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                                 <div style={{ 
                                     fontSize: "2.5rem",
-                                    transform: hoveredService === service.id ? "rotate(10deg) scale(1.1)" : "rotate(0deg) scale(1)",
+                                    transform: hoveredService === serviceType.id ? "rotate(10deg) scale(1.1)" : "rotate(0deg) scale(1)",
                                     transition: "transform 0.3s ease"
                                 }}>
-                                    {service.icon}
+                                    {serviceIcon}
                                 </div>
                                 <div>
                                     <h3 style={{ 
@@ -168,19 +418,19 @@ export default function ServicesShowcase({ onNavigate }) {
                                         fontSize: "1.4rem",
                                         fontWeight: "600"
                                     }}>
-                                        {service.name}
+                                        {serviceType.name}
                                     </h3>
                                     <span style={{
                                         padding: "3px 8px",
                                         borderRadius: "12px",
                                         fontSize: "11px",
                                         fontWeight: "600",
-                                        backgroundColor: `${getCategoryColor(service.category)}20`,
-                                        color: getCategoryColor(service.category),
+                                        backgroundColor: `${categoryColor}20`,
+                                        color: categoryColor,
                                         marginTop: "4px",
                                         display: "inline-block"
                                     }}>
-                                        {service.category}
+                                        {serviceCategory}
                                     </span>
                                 </div>
                             </div>
@@ -193,7 +443,7 @@ export default function ServicesShowcase({ onNavigate }) {
                             lineHeight: "1.5",
                             marginBottom: "20px"
                         }}>
-                            {service.description}
+                            {serviceType.description || serviceType.label || `Professional ${serviceType.name.toLowerCase()} service with expert technicians.`}
                         </p>
 
                         {/* Features */}
@@ -209,7 +459,7 @@ export default function ServicesShowcase({ onNavigate }) {
                                 What's Included:
                             </h4>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                {service.features.map((feature, index) => (
+                                {serviceFeatures.map((feature, index) => (
                                     <span
                                         key={index}
                                         style={{
@@ -240,47 +490,48 @@ export default function ServicesShowcase({ onNavigate }) {
                             <div>
                                 <div style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Duration</div>
                                 <div style={{ fontSize: "14px", color: "#333", fontWeight: "600" }}>
-                                    ⏱️ {service.duration}
+                                    ⏱️ {serviceDuration}
                                 </div>
                             </div>
                             <div style={{ textAlign: "right" }}>
                                 <div style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Starting from</div>
                                 <div style={{ 
                                     fontSize: "20px", 
-                                    color: getCategoryColor(service.category), 
+                                    color: categoryColor, 
                                     fontWeight: "700"
                                 }}>
-                                    LKR {service.price.toLocaleString()}
+                                    LKR {displayPrice.toLocaleString()}
                                 </div>
                             </div>
                         </div>
 
                         {/* Book Button */}
                         <button
-                            onClick={() => handleBookService(service)}
+                            onClick={() => handleBookService(serviceType)}
                             style={{
                                 width: "100%",
                                 padding: "14px 20px",
                                 border: "none",
                                 borderRadius: "10px",
-                                background: hoveredService === service.id 
-                                    ? `linear-gradient(135deg, ${getCategoryColor(service.category)}, ${getCategoryColor(service.category)}dd)`
+                                background: hoveredService === serviceType.id 
+                                    ? `linear-gradient(135deg, ${categoryColor}, ${categoryColor}dd)`
                                     : "#1a73e8",
                                 color: "white",
                                 fontSize: "16px",
                                 fontWeight: "600",
                                 cursor: "pointer",
                                 transition: "all 0.3s ease",
-                                transform: hoveredService === service.id ? "translateY(-2px)" : "translateY(0)",
-                                boxShadow: hoveredService === service.id 
-                                    ? `0 8px 20px ${getCategoryColor(service.category)}40`
+                                transform: hoveredService === serviceType.id ? "translateY(-2px)" : "translateY(0)",
+                                boxShadow: hoveredService === serviceType.id 
+                                    ? `0 8px 20px ${categoryColor}40`
                                     : "0 4px 12px rgba(26, 115, 232, 0.3)"
                             }}
                         >
                             📅 Book This Service
                         </button>
-                    </div>
-                ))}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Call to Action */}

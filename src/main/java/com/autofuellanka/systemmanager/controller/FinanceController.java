@@ -41,9 +41,7 @@ public class FinanceController {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? 
             Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
-        // For now, return all entries with pagination
-        // In a real implementation, you'd filter based on the parameters
+
         return financeLedgerRepository.findAllByOrderByTransactionDateDesc(pageable);
     }
 

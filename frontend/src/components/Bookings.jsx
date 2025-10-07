@@ -49,7 +49,7 @@ export default function Bookings() {
             ];
 
             const [bookingsRes, customersRes, vehiclesRes, serviceTypesRes, locationsRes] = await Promise.all(requests);
-            
+
             // Check each response
             if (!bookingsRes.ok) {
                 throw new Error(`Bookings: ${bookingsRes.status} ${bookingsRes.statusText}`);
@@ -104,24 +104,33 @@ export default function Bookings() {
         setError("");
 
         try {
-            const url = editId 
+            const url = editId
                 ? `${API_BASE}/api/bookings/${editId}`
                 : `${API_BASE}/api/bookings`;
-            
+
             const method = editId ? "PUT" : "POST";
+
+            // Ensure datetime format includes seconds
+            const formatDateTime = (dateTimeStr) => {
+                if (!dateTimeStr) return dateTimeStr;
+                // If the string doesn't end with seconds, add :00
+                return dateTimeStr.includes(':00') ? dateTimeStr : `${dateTimeStr}:00`;
+            };
 
             const requestBody = {
                 customerId: Number(form.customerId),
                 locationId: Number(form.locationId),
                 vehicleId: Number(form.vehicleId),
                 type: form.type,
-                startTime: form.startTime,
-                endTime: form.endTime,
+                startTime: formatDateTime(form.startTime),
+                endTime: formatDateTime(form.endTime),
                 status: form.status,
-                ...(form.serviceTypeId && { serviceTypeId: Number(form.serviceTypeId) }),
-                ...(form.fuelType && { fuelType: form.fuelType }),
-                ...(form.litersRequested && { litersRequested: Number(form.litersRequested) })
+                ...(form.serviceTypeId && form.serviceTypeId !== "" && { serviceTypeId: Number(form.serviceTypeId) }),
+                ...(form.fuelType && form.fuelType !== "" && { fuelType: form.fuelType }),
+                ...(form.litersRequested && form.litersRequested !== "" && { litersRequested: Number(form.litersRequested) })
             };
+
+            console.log('Sending booking request:', { url, method, requestBody });
 
             const response = await fetch(url, {
                 method,
@@ -134,6 +143,7 @@ export default function Bookings() {
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('Booking request failed:', { status: response.status, errorText, requestBody });
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
@@ -178,7 +188,7 @@ export default function Bookings() {
 
     const handleDelete = async (id) => {
         if (!confirm(`Are you sure you want to delete booking #${id}?`)) return;
-        
+
         try {
             const response = await fetch(`${API_BASE}/api/bookings/${id}`, {
                 method: "DELETE",
@@ -245,7 +255,7 @@ export default function Bookings() {
     };
 
     // Filter bookings by customer
-    const filteredBookings = filterCustomer 
+    const filteredBookings = filterCustomer
         ? bookings.filter(booking => booking.customerId.toString() === filterCustomer)
         : bookings;
 
@@ -482,8 +492,6 @@ export default function Bookings() {
                                 style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
                             >
                                 <option value="PENDING">Pending</option>
-                                <option value="CONFIRMED">Confirmed</option>
-                                <option value="IN_PROGRESS">In Progress</option>
                                 <option value="COMPLETED">Completed</option>
                                 <option value="CANCELLED">Cancelled</option>
                             </select>
@@ -570,7 +578,7 @@ export default function Bookings() {
                                         </span>
                                     </td>
                                     <td style={{ padding: "12px" }}>
-                                        {booking.serviceTypeId ? getServiceName(booking.serviceTypeId) : 
+                                        {booking.serviceTypeId ? getServiceName(booking.serviceTypeId) :
                                          booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : '-'}
                                     </td>
                                     <td style={{ padding: "12px" }}>
@@ -578,12 +586,12 @@ export default function Bookings() {
                                             padding: "4px 8px",
                                             borderRadius: "4px",
                                             fontSize: "12px",
-                                            backgroundColor: 
+                                            backgroundColor:
                                                 booking.status === "COMPLETED" ? "#e8f5e8" :
                                                 booking.status === "CANCELLED" ? "#ffeaea" :
                                                 booking.status === "IN_PROGRESS" ? "#fff3cd" :
                                                 "#e3f2fd",
-                                            color: 
+                                            color:
                                                 booking.status === "COMPLETED" ? "#2e7d32" :
                                                 booking.status === "CANCELLED" ? "#d32f2f" :
                                                 booking.status === "IN_PROGRESS" ? "#f57c00" :

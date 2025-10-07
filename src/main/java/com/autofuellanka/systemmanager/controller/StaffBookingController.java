@@ -36,7 +36,7 @@ public class StaffBookingController {
         return null;
     }
 
-    // List all bookings (fetch join to avoid LazyInitializationException)
+    // List all bookings
     @GetMapping({"", "/"})
     public ResponseEntity<?> listAll(
             @RequestHeader(value = "X-Role", required = false) String roleHeader,

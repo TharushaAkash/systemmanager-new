@@ -39,6 +39,7 @@ public class Booking {
     @JoinColumn(name = "customer_id", referencedColumnName = "id", insertable = false, updatable = false)
     private Customer customer;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_type_id", insertable = false, updatable = false)
     private ServiceType serviceType;

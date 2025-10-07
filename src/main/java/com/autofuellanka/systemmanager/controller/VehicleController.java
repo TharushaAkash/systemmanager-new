@@ -18,7 +18,6 @@ public class VehicleController {
         this.repo = repo;
     }
 
-    // --- Basic CRUD ---
 
     @GetMapping
     public List<Vehicle> all() {
@@ -72,14 +71,13 @@ public class VehicleController {
         return ResponseEntity.ok().body("Vehicle " + id + " deleted");
     }
 
-    // --- Helpers & customer-scoped endpoints ---
 
     @GetMapping("/search")
     public List<Vehicle> searchByPlate(@RequestParam("q") String q) {
         return repo.findByPlateNumberContainingIgnoreCase(q == null ? "" : q);
     }
 
-    // list vehicles for a specific customer (useful for frontend forms)
+    // list vehicles for a specific customer
     @GetMapping("/by-customer/{customerId}")
     public List<Vehicle> byCustomer(@PathVariable Long customerId) {
         return repo.findByCustomerId(customerId);

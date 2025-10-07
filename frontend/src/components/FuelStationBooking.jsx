@@ -79,12 +79,19 @@ export default function FuelStationBooking() {
         setSuccess("");
 
         try {
+            // Ensure datetime format includes seconds
+            const formatDateTime = (dateTimeStr) => {
+                if (!dateTimeStr) return dateTimeStr;
+                // If the string doesn't end with seconds, add :00
+                return dateTimeStr.includes(':00') ? dateTimeStr : `${dateTimeStr}:00`;
+            };
+
             const requestBody = {
                 locationId: Number(form.locationId),
                 vehicleId: Number(form.vehicleId),
                 type: "FUEL",
-                startTime: form.startTime,
-                endTime: form.endTime,
+                startTime: formatDateTime(form.startTime),
+                endTime: formatDateTime(form.endTime),
                 status: form.status,
                 fuelType: form.fuelType,
                 litersRequested: Number(form.litersRequested)

@@ -76,8 +76,9 @@ export default function PendingJobs() {
         }
     };
 
-    // Get bookings that don't have jobs assigned yet
+    // Get bookings that are CONFIRMED and don't have jobs assigned yet
     const pendingBookings = bookings.filter(booking => 
+        booking.status === 'CONFIRMED' && 
         !jobs.some(job => job.bookingId === booking.id)
     );
 
@@ -163,7 +164,7 @@ export default function PendingJobs() {
                     <div style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "5px" }}>
                         {pendingBookings.length}
                     </div>
-                    <div style={{ fontSize: "16px", opacity: 0.9 }}>Pending Assignments</div>
+                    <div style={{ fontSize: "16px", opacity: 0.9 }}>Confirmed & Pending</div>
                 </div>
 
                 <div style={{
@@ -173,6 +174,20 @@ export default function PendingJobs() {
                     borderRadius: "12px",
                     textAlign: "center",
                     boxShadow: "0 4px 15px rgba(40, 167, 69, 0.3)"
+                }}>
+                    <div style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "5px" }}>
+                        {bookings.filter(b => b.status === 'CONFIRMED').length}
+                    </div>
+                    <div style={{ fontSize: "16px", opacity: 0.9 }}>Total Confirmed</div>
+                </div>
+
+                <div style={{
+                    background: "linear-gradient(135deg, #17a2b8, #138496)",
+                    color: "white",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    textAlign: "center",
+                    boxShadow: "0 4px 15px rgba(23, 162, 184, 0.3)"
                 }}>
                     <div style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "5px" }}>
                         {getAvailableTechnicians().length}
@@ -207,7 +222,10 @@ export default function PendingJobs() {
                 }}>
                     <div style={{ fontSize: "48px", marginBottom: "15px" }}>🎉</div>
                     <h3 style={{ color: "#28a745", marginBottom: "10px" }}>All Caught Up!</h3>
-                    <p>No pending job assignments at the moment.</p>
+                    <p>No confirmed bookings waiting for job assignment.</p>
+                    <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
+                        Only bookings with "CONFIRMED" status appear here.
+                    </p>
                 </div>
             ) : (
                 <div style={{

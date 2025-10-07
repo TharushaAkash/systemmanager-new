@@ -24,7 +24,7 @@ import PendingJobs from "./PendingJobs";
 import CurrentJobs from "./CurrentJobs";
 import CustomerProfile from "./CustomerProfile";
 import ServicesShowcase from "./ServicesShowcase";
-import ServiceBookingForm from "./ServiceBookingForm";
+import ServiceCenterBooking from "./ServiceCenterBooking";
 import CustomerMyBookings from "./CustomerMyBookings";
 
 function Home({ onNavigate }) {
@@ -62,14 +62,6 @@ function Home({ onNavigate }) {
                 icon: "👨‍💼",
                 color: "#10b981",
                 crudSections: [
-                    {
-                        title: "Customer Management", 
-                        description: "Manage customer accounts and information",
-                        icon: "👤",
-                        color: "#0ea5e9",
-                        key: "customers",
-                        operations: ["Add Customers", "View Customers", "Update Customers", "Remove Customers"]
-                    },
                     {
                         title: "Inventory Management",
                         description: "Control inventory items and stock levels",
@@ -560,88 +552,500 @@ function Row({ label, value }) {
     );
 }
 
-export default function Layout() {
+export default function Layout({ onNavigate }) {
     const [page, setPage] = useState("home");
-    const { user, hasRole } = useAuth();
+    const [navigationParams, setNavigationParams] = useState({});
+    const { user, hasRole, logout } = useAuth();
 
-    // --- hash URL sync (minimal) ---
+    // --- hash URL sync with role-based validation ---
     const DEFAULT_PAGE = "home";
     const readHash = () => (window.location.hash || "").replace(/^#\/?/, "") || DEFAULT_PAGE;
     const writeHash = (key) => {
         const h = `#/${key}`;
         if (window.location.hash !== h) window.history.pushState({}, "", h);
     };
-    const navigateTo = (key) => { if (key) { setPage(key); writeHash(key); } };
+    
+    // Check if a page is accessible for the current user role
+    const isPageAccessible = (pageKey) => {
+        if (!user) return false;
+        
+        // Define role-based page access
+        const rolePages = {
+            'CUSTOMER': ['home', 'my-vehicles', 'services', 'service-booking', 'my-bookings', 'profile'],
+            'TECHNICIAN': ['home', 'job-management', 'current-jobs', 'technicians', 'pending-jobs'],
+            'STAFF': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard'],
+            'FINANCE': ['home', 'invoices', 'invoice-detail', 'finance-ledger'],
+            'ADMIN': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard', 'invoices', 'invoice-detail', 'finance-ledger']
+        };
+        
+        const userPages = rolePages[user.role] || [];
+        return userPages.includes(pageKey);
+    };
+    
+    const navigateTo = (key, params = {}) => { 
+        if (key) { 
+            // Check if the page is accessible for the current user
+            if (isPageAccessible(key)) {
+                setPage(key); 
+                setNavigationParams(params);
+                writeHash(key); 
+            } else {
+                // Redirect to home if page is not accessible
+                setPage('home');
+                setNavigationParams({});
+                writeHash('home');
+            }
+        } 
+    };
+    
     useEffect(() => {
-        setPage(readHash());
-        const onChange = () => setPage(readHash());
+        const currentHash = readHash();
+        
+        // If the current hash page is not accessible for the user's role, redirect to home
+        if (!isPageAccessible(currentHash)) {
+            setPage('home');
+            writeHash('home');
+        } else {
+            setPage(currentHash);
+        }
+        
+        const onChange = () => {
+            const newHash = readHash();
+            if (!isPageAccessible(newHash)) {
+                setPage('home');
+                writeHash('home');
+            } else {
+                setPage(newHash);
+            }
+        };
+        
         window.addEventListener("popstate", onChange);
         window.addEventListener("hashchange", onChange);
         return () => {
             window.removeEventListener("popstate", onChange);
             window.removeEventListener("hashchange", onChange);
         };
-    }, []);
+    }, [user]); // Re-run when user changes
     // --- end hash sync ---
+
+    // Check if user is admin for special layout
+    const isAdmin = user?.role === "ADMIN";
+
+    // Get role-specific styling
+    const getRoleStyling = () => {
+        const role = user?.role;
+        switch (role) {
+            case 'ADMIN':
+                return {
+                    icon: '👑',
+                    title: 'Admin Panel',
+                    color: '#667eea',
+                    bgGradient: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
+                    headerGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    accessText: 'Administrator Access'
+                };
+            case 'STAFF':
+                return {
+                    icon: '👨‍💼',
+                    title: 'Staff Panel',
+                    color: '#10b981',
+                    bgGradient: 'linear-gradient(180deg, #064e3b 0%, #065f46 100%)',
+                    headerGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    accessText: 'Staff Access'
+                };
+            case 'TECHNICIAN':
+                return {
+                    icon: '🔧',
+                    title: 'Technician Panel',
+                    color: '#8b5cf6',
+                    bgGradient: 'linear-gradient(180deg, #581c87 0%, #6b21a8 100%)',
+                    headerGradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                    accessText: 'Technician Access'
+                };
+            case 'FINANCE':
+                return {
+                    icon: '💰',
+                    title: 'Finance Panel',
+                    color: '#f59e0b',
+                    bgGradient: 'linear-gradient(180deg, #92400e 0%, #b45309 100%)',
+                    headerGradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    accessText: 'Finance Access'
+                };
+            case 'CUSTOMER':
+                return {
+                    icon: '👤',
+                    title: 'Customer Panel',
+                    color: '#3b82f6',
+                    bgGradient: 'linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%)',
+                    headerGradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    accessText: 'Customer Access'
+                };
+            default:
+                return {
+                    icon: '👤',
+                    title: 'User Panel',
+                    color: '#6b7280',
+                    bgGradient: 'linear-gradient(180deg, #374151 0%, #4b5563 100%)',
+                    headerGradient: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                    accessText: 'User Access'
+                };
+        }
+    };
+
+    const roleStyling = getRoleStyling();
+
+    // Get role-specific navigation items (excluding customers)
+    const getRoleNavigationItems = () => {
+        const role = user?.role;
+        switch (role) {
+            case 'ADMIN':
+                return [
+                    {
+                        title: "System Management",
+                        items: [
+                            { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" },
+                            { key: "user-management", label: "User Management", icon: "👥", color: "#ef4444" },
+                            { key: "customers", label: "Customer Management", icon: "👤", color: "#0ea5e9" },
+                            { key: "operations-dashboard", label: "Operations Dashboard", icon: "📊", color: "#3b82f6" }
+                        ]
+                    },
+                    {
+                        title: "Business Operations",
+                        items: [
+                            { key: "inventory", label: "Inventory Management", icon: "📦", color: "#22c55e" },
+                            { key: "bookings", label: "Booking Management", icon: "📅", color: "#f59e0b" },
+                            { key: "service-types", label: "Service Management", icon: "🔧", color: "#a855f7" },
+                            { key: "vehicles", label: "Vehicle Management", icon: "🚗", color: "#06b6d4" },
+                            { key: "invoices", label: "Invoice Management", icon: "📄", color: "#f59e0b" },
+                            { key: "finance-ledger", label: "Finance Ledger", icon: "💰", color: "#10b981" }
+                        ]
+                    }
+                ];
+            case 'STAFF':
+                return [
+                    {
+                        title: "Operations Management",
+                        items: [
+                            { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" },
+                            { key: "operations-dashboard", label: "Operations Dashboard", icon: "📊", color: "#3b82f6" },
+                            { key: "inventory", label: "Inventory Management", icon: "📦", color: "#22c55e" },
+                            { key: "bookings", label: "Booking Management", icon: "📅", color: "#f59e0b" },
+                            { key: "service-types", label: "Service Management", icon: "🔧", color: "#a855f7" },
+                            { key: "vehicles", label: "Vehicle Management", icon: "🚗", color: "#06b6d4" }
+                        ]
+                    }
+                ];
+            case 'TECHNICIAN':
+                return [
+                    {
+                        title: "Job Management",
+                        items: [
+                            { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" },
+                            { key: "job-management", label: "Job Management", icon: "⚙️", color: "#8b5cf6" },
+                            { key: "current-jobs", label: "Current Jobs", icon: "📋", color: "#3b82f6" },
+                            { key: "pending-jobs", label: "Pending Jobs", icon: "⏳", color: "#f59e0b" },
+                            { key: "technicians", label: "Technicians", icon: "👨‍🔧", color: "#10b981" }
+                        ]
+                    }
+                ];
+            case 'FINANCE':
+                return [
+                    {
+                        title: "Financial Management",
+                        items: [
+                            { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" },
+                            { key: "invoices", label: "Invoice Management", icon: "📄", color: "#f59e0b" },
+                            { key: "finance-ledger", label: "Finance Ledger", icon: "💰", color: "#10b981" }
+                        ]
+                    }
+                ];
+            default:
+                return [
+                    {
+                        title: "Navigation",
+                        items: [
+                            { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" }
+                        ]
+                    }
+                ];
+        }
+    };
+
+    // Check if user is customer for different layout
+    const isCustomer = user?.role === "CUSTOMER";
 
     return (
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            <header className="app-header">
-                <div className="container header-inner">
-                    <h1 className="brand">AutoFuel Lanka</h1>
-                    <RoleBasedNavigation onNavigate={navigateTo} currentPage={page} />
+            {isCustomer ? (
+                // Customer Layout - Traditional Header/Footer
+                <>
+                    <header className="app-header">
+                        <div className="container header-inner">
+                            <h1 className="brand">AutoFuel Lanka</h1>
+                            <RoleBasedNavigation onNavigate={navigateTo} currentPage={page} />
+                        </div>
+                    </header>
+
+                    <main style={{ flex: 1 }}>
+                        {page === "home" && <Home onNavigate={navigateTo} />}
+                        
+                        {/* Customer Pages */}
+                        {page === "my-vehicles" && <section className="section"><div className="container"><MyVehicles /></div></section>}
+                        {page === "services" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServicesShowcase onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "service-booking" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServiceCenterBooking bookingType={navigationParams.bookingType || "SERVICE"} showTypeSelector={navigationParams.showTypeSelector !== false} /></ProtectedRoute></div></section>}
+                        {page === "my-bookings" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><CustomerMyBookings onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "profile" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><CustomerProfile /></ProtectedRoute></div></section>}
+                    </main>
+
+                    <footer className="app-footer">
+                        <div className="container footer-inner">
+                            <small>© {new Date().getFullYear()} AutoFuel Lanka. All rights reserved.</small>
+                        </div>
+                    </footer>
+                </>
+            ) : (
+                // Admin/Staff/Technician/Finance Layout - Sidebar
+                <div style={{ display: "flex", minHeight: "100vh" }}>
+                    {/* Sidebar */}
+                    <div style={{
+                        width: "280px",
+                        background: roleStyling.bgGradient,
+                        color: "white",
+                        position: "fixed",
+                        height: "100vh",
+                        overflowY: "auto",
+                        zIndex: 1000
+                    }}>
+                        {/* Role Header */}
+                        <div style={{
+                            padding: "2rem 1.5rem",
+                            borderBottom: "1px solid rgba(255,255,255,0.1)",
+                            background: roleStyling.headerGradient
+                        }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+                                <div style={{ fontSize: "2rem" }}>{roleStyling.icon}</div>
+                                <div>
+                                    <h2 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700" }}>{roleStyling.title}</h2>
+                                    <p style={{ margin: 0, fontSize: "0.9rem", opacity: 0.8 }}>AutoFuel Lanka</p>
+                                </div>
+                            </div>
+                            <div style={{
+                                background: "rgba(255,255,255,0.1)",
+                                padding: "0.75rem",
+                                borderRadius: "8px",
+                                fontSize: "0.9rem"
+                            }}>
+                                <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>Welcome, {user?.email}</div>
+                                <div style={{ opacity: 0.8, fontSize: "0.8rem" }}>{roleStyling.accessText}</div>
+                            </div>
+                        </div>
+
+                    {/* Role-Specific Navigation */}
+                    <nav style={{ 
+                        padding: "1.5rem 0", 
+                        display: "flex", 
+                        flexDirection: "column", 
+                        height: "calc(100vh - 200px)",
+                        position: "relative"
+                    }}>
+                        <div style={{ flex: 1 }}>
+                            {getRoleNavigationItems().map((section, sectionIndex) => (
+                                <div key={sectionIndex}>
+                                    <div style={{ padding: "0 1.5rem", marginBottom: "1rem" }}>
+                                        <h3 style={{ 
+                                            fontSize: "0.8rem", 
+                                            fontWeight: "600", 
+                                            color: "rgba(255,255,255,0.6)", 
+                                            margin: "0 0 0.75rem 0",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.5px"
+                                        }}>
+                                            {section.title}
+                                        </h3>
+                                    </div>
+                                    
+                                    {section.items.map((item) => (
+                                        <button
+                                            key={item.key}
+                                            onClick={() => navigateTo(item.key)}
+                                            style={{
+                                                width: "100%",
+                                                background: page === item.key 
+                                                    ? `linear-gradient(135deg, ${item.color}, ${item.color}dd)` 
+                                                    : "transparent",
+                                                color: "white",
+                                                border: "none",
+                                                padding: "1rem 1.5rem",
+                                                textAlign: "left",
+                                                cursor: "pointer",
+                                                transition: "all 0.3s ease",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "0.75rem",
+                                                fontSize: "0.95rem",
+                                                fontWeight: "500",
+                                                borderLeft: page === item.key ? `4px solid ${item.color}` : "4px solid transparent"
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (page !== item.key) {
+                                                    e.target.style.background = "rgba(255,255,255,0.1)";
+                                                }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (page !== item.key) {
+                                                    e.target.style.background = "transparent";
+                                                }
+                                            }}
+                                        >
+                                            <span style={{ fontSize: "1.2rem" }}>{item.icon}</span>
+                                            {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Logout Button - At the bottom */}
+                        <div style={{ 
+                            marginTop: "auto",
+                            padding: "1.5rem",
+                            borderTop: "1px solid rgba(255,255,255,0.1)"
+                        }}>
+                            <button
+                                onClick={logout}
+                                style={{
+                                    width: "100%",
+                                    background: "linear-gradient(135deg, #dc2626, #b91c1c)",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "0.75rem 1rem",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontSize: "0.9rem",
+                                    fontWeight: "600",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "0.5rem",
+                                    transition: "all 0.3s ease"
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.transform = "translateY(-2px)";
+                                    e.target.style.boxShadow = "0 4px 12px rgba(220, 38, 38, 0.3)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.transform = "translateY(0)";
+                                    e.target.style.boxShadow = "none";
+                                }}
+                            >
+                                <span>🚪</span>
+                                Logout
+                            </button>
+                        </div>
+                    </nav>
+                    </div>
+
+                {/* Main Content Area */}
+                <div style={{ 
+                    flex: 1, 
+                    marginLeft: "280px",
+                    background: "#f8fafc",
+                    minHeight: "100vh"
+                }}>
+                    <main style={{ padding: "2rem" }}>
+                        {/* Role-Specific Dashboard Content */}
+                        {page === "home" && (
+                            <div style={{
+                                background: "white",
+                                borderRadius: "12px",
+                                padding: "2rem",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+                            }}>
+                                <h1 style={{ color: "#1a1a1a", margin: "0 0 1rem 0", fontSize: "2rem" }}>
+                                    {roleStyling.icon} {roleStyling.title}
+                                </h1>
+                                <p style={{ color: "#666", margin: "0 0 2rem 0", fontSize: "1.1rem" }}>
+                                    Welcome to the AutoFuel Lanka {roleStyling.title}. Manage your tasks and operations from here.
+                                </p>
+                                
+                                <div style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                                    gap: "1.5rem"
+                                }}>
+                                    {getRoleNavigationItems()[0]?.items.slice(1, 5).map((item, index) => (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                background: `linear-gradient(135deg, ${item.color}, ${item.color}dd)`,
+                                                color: "white",
+                                                padding: "1.5rem",
+                                                borderRadius: "12px",
+                                                textAlign: "center",
+                                                cursor: "pointer",
+                                                transition: "all 0.3s ease"
+                                            }}
+                                            onClick={() => navigateTo(item.key)}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = "translateY(-5px)";
+                                                e.currentTarget.style.boxShadow = `0 8px 25px ${item.color}40`;
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = "translateY(0)";
+                                                e.currentTarget.style.boxShadow = "none";
+                                            }}
+                                        >
+                                            <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>{item.icon}</div>
+                                            <h3 style={{ margin: "0 0 0.5rem 0" }}>{item.label}</h3>
+                                            <p style={{ margin: 0, opacity: 0.9, fontSize: "0.9rem" }}>
+                                                {item.key === 'user-management' && 'Manage user accounts and permissions'}
+                                                {item.key === 'inventory' && 'Track and manage inventory items'}
+                                                {item.key === 'bookings' && 'Manage customer bookings and appointments'}
+                                                {item.key === 'job-management' && 'Manage and track job assignments'}
+                                                {item.key === 'invoices' && 'Handle invoice management and billing'}
+                                                {item.key === 'my-vehicles' && 'Manage your registered vehicles'}
+                                                {item.key === 'services' && 'Browse available services and pricing'}
+                                                {item.key === 'operations-dashboard' && 'Monitor system operations and performance'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* All Role Pages (Non-Customer) */}
+                        {/* Technician */}
+                        {page === "job-management" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><JobManagement /></ProtectedRoute></div></section>}
+                        {page === "current-jobs" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><CurrentJobs /></ProtectedRoute></div></section>}
+                        {page === "technicians" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><Technicians /></ProtectedRoute></div></section>}
+                        {page === "pending-jobs" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><PendingJobs /></ProtectedRoute></div></section>}
+
+                        {/* Staff/Admin */}
+                        {page === "user-management" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><UserManagement /></ProtectedRoute></div></section>}
+                        {page === "customers" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Customers /></ProtectedRoute></div></section>}
+                        {page === "vehicles" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Vehicles /></ProtectedRoute></div></section>}
+                        {page === "bookings" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Bookings /></ProtectedRoute></div></section>}
+                        {page === "service-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><ServiceTypes /></ProtectedRoute></div></section>}
+                        {page === "inventory" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><InventoryItems onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "inventory-new" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><NewInventoryItem onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "inventory-moves" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><StockMoves onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "vehicle-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><VehicleTypes /></ProtectedRoute></div></section>}
+                        {page === "operations-dashboard" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><OperationsDashboard onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+
+                        {/* Finance */}
+                        {page === "invoices" && <section className="section"><div className="container"><ProtectedRoute requiredRole="FINANCE"><InvoiceList onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page.startsWith("invoice-detail-") && (
+                            <section className="section"><div className="container">
+                                <ProtectedRoute requiredRole="FINANCE">
+                                    <InvoiceDetail invoiceId={parseInt(page.replace("invoice-detail-", ""))} onNavigate={navigateTo} />
+                                </ProtectedRoute>
+                            </div></section>
+                        )}
+                        {page === "finance-ledger" && <section className="section"><div className="container"><ProtectedRoute requiredRole="FINANCE"><FinanceLedger onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                    </main>
                 </div>
-            </header>
-
-            <main style={{ flex: 1 }}>
-                {page === "home" && (
-                    hasRole("TECHNICIAN") ? 
-                        <section className="section"><div className="container"><TechnicianDashboard onNavigate={navigateTo} /></div></section> :
-                        <Home onNavigate={navigateTo} />
-                )}
-
-                {/* Customer */}
-                {page === "my-vehicles" && <section className="section"><div className="container"><MyVehicles /></div></section>}
-                {page === "services" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServicesShowcase onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page === "service-booking" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServiceBookingForm onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page === "my-bookings" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><CustomerMyBookings onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page === "profile" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><CustomerProfile /></ProtectedRoute></div></section>}
-
-                {/* Technician */}
-                {page === "job-management" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><JobManagement /></ProtectedRoute></div></section>}
-                {page === "current-jobs" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><CurrentJobs /></ProtectedRoute></div></section>}
-                {page === "technicians" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><Technicians /></ProtectedRoute></div></section>}
-                {page === "pending-jobs" && <section className="section"><div className="container"><ProtectedRoute requiredRole="TECHNICIAN"><PendingJobs /></ProtectedRoute></div></section>}
-
-                {/* Staff/Admin */}
-                {page === "user-management" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><UserManagement /></ProtectedRoute></div></section>}
-                {page === "customers" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Customers /></ProtectedRoute></div></section>}
-                {page === "vehicles" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Vehicles /></ProtectedRoute></div></section>}
-                {page === "bookings" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Bookings /></ProtectedRoute></div></section>}
-                {page === "service-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><ServiceTypes /></ProtectedRoute></div></section>}
-                {page === "inventory" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><InventoryItems onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page === "inventory-new" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><NewInventoryItem onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page === "inventory-moves" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><StockMoves onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page === "vehicle-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><VehicleTypes /></ProtectedRoute></div></section>}
-                {page === "operations-dashboard" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><OperationsDashboard onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-
-                {/* Finance */}
-                {page === "invoices" && <section className="section"><div className="container"><ProtectedRoute requiredRole="FINANCE"><InvoiceList onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                {page.startsWith("invoice-detail-") && (
-                    <section className="section"><div className="container">
-                        <ProtectedRoute requiredRole="FINANCE">
-                            <InvoiceDetail invoiceId={parseInt(page.replace("invoice-detail-", ""))} onNavigate={navigateTo} />
-                        </ProtectedRoute>
-                    </div></section>
-                )}
-                {page === "finance-ledger" && <section className="section"><div className="container"><ProtectedRoute requiredRole="FINANCE"><FinanceLedger onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-            </main>
-
-            <footer className="app-footer">
-                <div className="container footer-inner">
-                    <small>© {new Date().getFullYear()} AutoFuel Lanka. All rights reserved.</small>
-                </div>
-            </footer>
+            </div>
+            )}
         </div>
     );
 }

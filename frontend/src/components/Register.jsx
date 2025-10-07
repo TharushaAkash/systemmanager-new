@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const API_BASE = "http://localhost:8080";
 
-export default function Register({ onLogin }) {
+export default function Register({ onLogin, onNavigate }) {
     const [form, setForm] = useState({ 
         fullName: '', 
         email: '', 
@@ -67,8 +67,11 @@ export default function Register({ onLogin }) {
             });
 
             if (loginResponse.ok) {
-                // Auto-login successful
-                onLogin();
+                // Auto-login successful, clear URL hash and navigate to dashboard
+                window.location.hash = '';
+                if (onNavigate) {
+                    onNavigate('dashboard');
+                }
             } else {
                 // Registration successful but auto-login failed
                 setError('Registration successful! Please login with your credentials.');
@@ -101,6 +104,20 @@ export default function Register({ onLogin }) {
                 maxWidth: '500px'
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    <button
+                        onClick={() => onNavigate && onNavigate('home')}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#1a73e8',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            marginBottom: '1rem',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        ← Back to Home
+                    </button>
                     <h1 style={{ color: '#333', margin: '0 0 0.5rem 0' }}>AutoFuel Lanka</h1>
                     <p style={{ color: '#666', margin: 0 }}>Create your account</p>
                 </div>

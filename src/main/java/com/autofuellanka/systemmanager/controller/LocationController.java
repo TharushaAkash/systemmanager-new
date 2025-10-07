@@ -27,8 +27,7 @@ public class LocationController {
         return repo.findAll();
     }
 
-    // Search by name/address fragment (q) and/or filter by type (enum)
-    // Example: /api/locations/search?q=colombo&type=SERVICE_CENTER
+    // Search by name/address
     @GetMapping("/search")
     public List<Location> search(
             @RequestParam(value = "q", required = false) String q,
@@ -41,7 +40,7 @@ public class LocationController {
             return repo.findByType(type);
         }
 
-        // If only q is provided → merge name & address matches (dedupe)
+        // If only q is provided → merge name & address matches
         if (type == null) {
             var byName = repo.findByNameContainingIgnoreCase(query);
             var byAddr = repo.findByAddressContainingIgnoreCase(query);
@@ -53,7 +52,7 @@ public class LocationController {
             return new ArrayList<>(map.values());
         }
 
-        // If both q and type are provided → filter by type then apply q in-memory (small lists are fine)
+        // If both q and type are provided
         return repo.findByType(type).stream()
                 .filter(l ->
                         (l.getName() != null && l.getName().toLowerCase().contains(query.toLowerCase())) ||
@@ -82,7 +81,7 @@ public class LocationController {
         }
     }
 
-    // Update (PATCH-like via PUT: only update provided fields)
+    // Update
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Location patch) {
         return repo.findById(id).map(existing -> {
@@ -110,7 +109,7 @@ public class LocationController {
         return ResponseEntity.ok("Location " + id + " deleted");
     }
 
-    // --- helpers ---
+    //  helpers
     private String validate(Location l) {
         if (l == null) return "body required";
         if (l.getName() == null || l.getName().isBlank()) return "name is required";

@@ -24,6 +24,7 @@ export default function UserManagement() {
         city: '',
         postalCode: ''
     });
+    const [passwordError, setPasswordError] = useState('');
 
     useEffect(() => {
         fetchUsers();
@@ -57,10 +58,36 @@ export default function UserManagement() {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
+        
+        // Password validation
+        if (name === 'password') {
+            if (value && value.length < 6) {
+                setPasswordError('Password must be at least 6 characters long');
+            } else {
+                setPasswordError('');
+            }
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Password validation
+        if (!editingUser && (!form.password || form.password.length < 6)) {
+            setPasswordError('Password must be at least 6 characters long');
+            setError('Password must be at least 6 characters long');
+            return;
+        }
+        
+        if (editingUser && form.password && form.password.length < 6) {
+            setPasswordError('Password must be at least 6 characters long');
+            setError('Password must be at least 6 characters long');
+            return;
+        }
+        
+        // Clear password error if validation passes
+        setPasswordError('');
+        
         try {
             const url = editingUser ? `${API_BASE}/api/users/${editingUser.id}` : `${API_BASE}/api/users`;
             const method = editingUser ? 'PUT' : 'POST';
@@ -103,6 +130,7 @@ export default function UserManagement() {
                 city: '',
                 postalCode: ''
             });
+            setPasswordError('');
             setShowForm(false);
             setEditingUser(null);
         } catch (err) {
@@ -123,6 +151,7 @@ export default function UserManagement() {
             city: user.city || '',
             postalCode: user.postalCode || ''
         });
+        setPasswordError('');
         setEditingUser(user);
         setShowForm(true);
     };
@@ -384,7 +413,11 @@ export default function UserManagement() {
                     
                     <div>
                         <button 
-                            onClick={() => setShowForm(true)}
+                            onClick={() => {
+                                setShowForm(true);
+                                setPasswordError('');
+                                setEditingUser(null);
+                            }}
                             style={{ 
                                 width: "100%",
                                 padding: "12px 24px", 
@@ -476,22 +509,47 @@ export default function UserManagement() {
                             <input
                                 type="password"
                                 name="password"
-                                placeholder="Enter password"
+                                placeholder="Enter password (min 6 characters)"
                                 value={form.password}
                                 onChange={handleInputChange}
                                 required={!editingUser}
                                 style={{ 
                                     width: "100%",
                                     padding: "12px 16px", 
-                                    border: "2px solid #e2e8f0", 
+                                    border: `2px solid ${passwordError ? "#ef4444" : "#e2e8f0"}`, 
                                     borderRadius: "12px",
                                     fontSize: "1rem",
                                     transition: "all 0.3s ease",
-                                    outline: "none"
+                                    outline: "none",
+                                    backgroundColor: passwordError ? "#fef2f2" : "white"
                                 }}
-                                onFocus={(e) => e.target.style.borderColor = "#6366f1"}
-                                onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                                onFocus={(e) => e.target.style.borderColor = passwordError ? "#ef4444" : "#6366f1"}
+                                onBlur={(e) => e.target.style.borderColor = passwordError ? "#ef4444" : "#e2e8f0"}
                             />
+                            {passwordError && (
+                                <div style={{
+                                    color: "#ef4444",
+                                    fontSize: "0.75rem",
+                                    marginTop: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px"
+                                }}>
+                                    ⚠️ {passwordError}
+                                </div>
+                            )}
+                            {form.password && form.password.length >= 6 && (
+                                <div style={{
+                                    color: "#22c55e",
+                                    fontSize: "0.75rem",
+                                    marginTop: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px"
+                                }}>
+                                    ✅ Password is valid
+                                </div>
+                            )}
                         </div>
                         
                         <div>

@@ -63,6 +63,9 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('user');
         setToken(null);
         setUser(null);
+        // Clear URL hash and redirect to home
+        window.location.hash = '';
+        window.location.reload();
     };
 
     const hasRole = (requiredRole) => {

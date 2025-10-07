@@ -11,6 +11,16 @@ export default function InventoryItems({ onNavigate }) {
     const [categories, setCategories] = useState([]);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [showStockDrawer, setShowStockDrawer] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        name: '',
+        sku: '',
+        category: '',
+        onHand: '',
+        minQty: '',
+        unitPrice: ''
+    });
 
     const load = async () => {
         setLoading(true);
@@ -47,6 +57,51 @@ export default function InventoryItems({ onNavigate }) {
         } catch (e) {
             setErr(String(e.message));
         }
+    };
+
+    const handleEdit = (item) => {
+        setEditingItem(item);
+        setEditFormData({
+            name: item.name || '',
+            sku: item.sku || '',
+            category: item.category || '',
+            onHand: item.onHand || '',
+            minQty: item.minQty || '',
+            unitPrice: item.unitPrice || ''
+        });
+        setShowEditModal(true);
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        if (!editingItem) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/inventory/items/${editingItem.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editFormData)
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            await load();
+            setShowEditModal(false);
+            setEditingItem(null);
+        } catch (e) {
+            setErr(String(e.message));
+        }
+    };
+
+    const handleEditCancel = () => {
+        setShowEditModal(false);
+        setEditingItem(null);
+        setEditFormData({
+            name: '',
+            sku: '',
+            category: '',
+            onHand: '',
+            minQty: '',
+            unitPrice: ''
+        });
     };
 
     const handleSearch = async () => {
@@ -207,7 +262,7 @@ export default function InventoryItems({ onNavigate }) {
                             }}
                         >
                             ➕ New Item
-                        </button>
+                    </button>
                         <button 
                             onClick={() => onNavigate && onNavigate("inventory-moves")} 
                             style={{ 
@@ -232,7 +287,7 @@ export default function InventoryItems({ onNavigate }) {
                             }}
                         >
                             📊 Stock Moves
-                        </button>
+                    </button>
                     </div>
                 </div>
             </div>
@@ -266,12 +321,12 @@ export default function InventoryItems({ onNavigate }) {
                             Search Items
                         </label>
                         <div style={{ position: "relative" }}>
-                            <input
-                                type="text"
-                                placeholder="Search by name or SKU..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                <input
+                    type="text"
+                    placeholder="Search by name or SKU..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                                 style={{ 
                                     width: "100%",
                                     padding: "12px 16px 12px 40px", 
@@ -306,9 +361,9 @@ export default function InventoryItems({ onNavigate }) {
                         }}>
                             Category
                         </label>
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => handleCategoryFilter(e.target.value)}
+                <select
+                    value={selectedCategory}
+                    onChange={(e) => handleCategoryFilter(e.target.value)}
                             style={{ 
                                 width: "100%",
                                 padding: "12px 16px", 
@@ -322,12 +377,12 @@ export default function InventoryItems({ onNavigate }) {
                             }}
                             onFocus={(e) => e.target.style.borderColor = "#667eea"}
                             onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
-                        >
-                            <option value="">All Categories</option>
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
+                >
+                    <option value="">All Categories</option>
+                    {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                </select>
                     </div>
 
                     <div>
@@ -382,8 +437,8 @@ export default function InventoryItems({ onNavigate }) {
                             </span>
                         </div>
                         <div style={{ display: "flex", gap: "12px" }}>
-                            <button 
-                                onClick={() => setShowStockDrawer(true)}
+                    <button 
+                        onClick={() => setShowStockDrawer(true)}
                                 style={{ 
                                     padding: "10px 20px", 
                                     background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", 
@@ -406,9 +461,9 @@ export default function InventoryItems({ onNavigate }) {
                                 }}
                             >
                                 📊 Adjust Stock
-                            </button>
-                            <button 
-                                onClick={() => setSelectedItems(new Set())}
+                    </button>
+                    <button 
+                        onClick={() => setSelectedItems(new Set())}
                                 style={{ 
                                     padding: "10px 20px", 
                                     background: "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)", 
@@ -428,7 +483,7 @@ export default function InventoryItems({ onNavigate }) {
                                 }}
                             >
                                 ❌ Clear Selection
-                            </button>
+                    </button>
                         </div>
                     </div>
                 </div>
@@ -471,7 +526,7 @@ export default function InventoryItems({ onNavigate }) {
                 boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
                 border: "1px solid #e2e8f0"
             }}>
-                {loading ? (
+            {loading ? (
                     <div style={{ 
                         display: "flex", 
                         flexDirection: "column", 
@@ -498,7 +553,7 @@ export default function InventoryItems({ onNavigate }) {
                             Loading inventory items...
                         </p>
                     </div>
-                ) : err ? (
+            ) : err ? (
                     <div style={{ 
                         display: "flex", 
                         flexDirection: "column", 
@@ -520,7 +575,7 @@ export default function InventoryItems({ onNavigate }) {
                             Error: {err}
                         </p>
                     </div>
-                ) : filteredItems.length === 0 ? (
+            ) : filteredItems.length === 0 ? (
                     <div style={{ 
                         display: "flex", 
                         flexDirection: "column", 
@@ -552,7 +607,7 @@ export default function InventoryItems({ onNavigate }) {
                             overflow: "hidden",
                             boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
                         }}>
-                            <thead>
+                    <thead>
                                 <tr style={{ 
                                     background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                     color: "white"
@@ -565,16 +620,16 @@ export default function InventoryItems({ onNavigate }) {
                                         textTransform: "uppercase",
                                         letterSpacing: "0.05em"
                                     }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedItems.size === items.length && items.length > 0}
-                                            onChange={handleSelectAll}
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.size === items.length && items.length > 0}
+                                onChange={handleSelectAll}
                                             style={{ 
                                                 transform: "scale(1.2)",
                                                 cursor: "pointer"
                                             }}
-                                        />
-                                    </th>
+                            />
+                        </th>
                                     <th style={{ padding: "16px", textAlign: "left", fontWeight: "600", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>SKU</th>
                                     <th style={{ padding: "16px", textAlign: "left", fontWeight: "600", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Name</th>
                                     <th style={{ padding: "16px", textAlign: "left", fontWeight: "600", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Category</th>
@@ -583,19 +638,19 @@ export default function InventoryItems({ onNavigate }) {
                                     <th style={{ padding: "16px", textAlign: "right", fontWeight: "600", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Unit Price</th>
                                     <th style={{ padding: "16px", textAlign: "center", fontWeight: "600", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</th>
                                     <th style={{ padding: "16px", textAlign: "center", fontWeight: "600", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                    </tr>
+                    </thead>
+                    <tbody>
                                 {filteredItems.map((item, index) => (
-                                    <tr 
-                                        key={item.id}
-                                        style={{ 
+                        <tr 
+                            key={item.id}
+                            style={{ 
                                             backgroundColor: index % 2 === 0 ? "#ffffff" : "#f8fafc",
                                             borderBottom: "1px solid #e2e8f0",
                                             cursor: "pointer",
                                             transition: "all 0.2s ease"
-                                        }}
-                                        onClick={() => handleSelectItem(item.id)}
+                            }}
+                            onClick={() => handleSelectItem(item.id)}
                                         onMouseOver={(e) => {
                                             e.currentTarget.style.backgroundColor = item.onHand <= item.minQty ? "#fef3c7" : "#f1f5f9";
                                         }}
@@ -604,17 +659,17 @@ export default function InventoryItems({ onNavigate }) {
                                         }}
                                     >
                                         <td style={{ padding: "16px" }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedItems.has(item.id)}
-                                                onChange={() => handleSelectItem(item.id)}
-                                                onClick={(e) => e.stopPropagation()}
+                                <input
+                                    type="checkbox"
+                                    checked={selectedItems.has(item.id)}
+                                    onChange={() => handleSelectItem(item.id)}
+                                    onClick={(e) => e.stopPropagation()}
                                                 style={{ 
                                                     transform: "scale(1.2)",
                                                     cursor: "pointer"
                                                 }}
-                                            />
-                                        </td>
+                                />
+                            </td>
                                         <td style={{ 
                                             padding: "16px", 
                                             fontWeight: "600", 
@@ -649,8 +704,8 @@ export default function InventoryItems({ onNavigate }) {
                                             color: item.onHand <= item.minQty ? "#dc2626" : "#374151",
                                             fontSize: "1.1rem"
                                         }}>
-                                            {item.onHand}
-                                        </td>
+                                {item.onHand}
+                            </td>
                                         <td style={{ 
                                             padding: "16px", 
                                             textAlign: "center",
@@ -667,7 +722,7 @@ export default function InventoryItems({ onNavigate }) {
                                             ${item.unitPrice || 0}
                                         </td>
                                         <td style={{ padding: "16px", textAlign: "center" }}>
-                                            <span style={{ 
+                                <span style={{ 
                                                 color: item.onHand <= item.minQty ? "#dc2626" : "#059669",
                                                 fontWeight: "600",
                                                 padding: "6px 12px",
@@ -677,12 +732,12 @@ export default function InventoryItems({ onNavigate }) {
                                                 border: `1px solid ${item.onHand <= item.minQty ? "#fecaca" : "#bbf7d0"}`
                                             }}>
                                                 {item.onHand <= item.minQty ? "⚠️ Low Stock" : "✅ OK"}
-                                            </span>
-                                        </td>
+                                </span>
+                            </td>
                                         <td style={{ padding: "16px", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                                             <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                                                 <button
-                                                    onClick={() => onNavigate && onNavigate("inventory-edit")}
+                                                    onClick={() => handleEdit(item)}
                                                     style={{ 
                                                         padding: "6px 12px", 
                                                         background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", 
@@ -699,8 +754,8 @@ export default function InventoryItems({ onNavigate }) {
                                                 >
                                                     ✏️ Edit
                                                 </button>
-                                                <button
-                                                    onClick={() => setShowStockDrawer(true)}
+                                <button
+                                    onClick={() => setShowStockDrawer(true)}
                                                     style={{ 
                                                         padding: "6px 12px", 
                                                         background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", 
@@ -716,9 +771,9 @@ export default function InventoryItems({ onNavigate }) {
                                                     onMouseOut={(e) => e.target.style.transform = "translateY(0)"}
                                                 >
                                                     📊 Stock
-                                                </button>
-                                                <button 
-                                                    onClick={() => onDelete(item.id)}
+                                </button>
+                                <button 
+                                    onClick={() => onDelete(item.id)}
                                                     style={{ 
                                                         padding: "6px 12px", 
                                                         background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)", 
@@ -734,15 +789,15 @@ export default function InventoryItems({ onNavigate }) {
                                                     onMouseOut={(e) => e.target.style.transform = "translateY(0)"}
                                                 >
                                                     🗑️ Delete
-                                                </button>
+                                </button>
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
                     </div>
-                )}
+            )}
             </div>
 
             {/* Stock Drawer */}
@@ -755,6 +810,18 @@ export default function InventoryItems({ onNavigate }) {
                         setSelectedItems(new Set());
                         load();
                     }}
+                />
+            )}
+
+            {/* Edit Modal */}
+            {showEditModal && (
+                <EditModal 
+                    item={editingItem}
+                    formData={editFormData}
+                    setFormData={setEditFormData}
+                    categories={categories}
+                    onSubmit={handleEditSubmit}
+                    onCancel={handleEditCancel}
                 />
             )}
         </div>
@@ -907,6 +974,321 @@ function StockDrawer({ items, onClose, onSuccess }) {
                             style={{ padding: "8px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: 4 }}
                         >
                             {loading ? "Processing..." : "Submit"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+// Edit Modal Component
+function EditModal({ item, formData, setFormData, categories, onSubmit, onCancel }) {
+    if (!item) return null;
+
+    return (
+        <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+        }}>
+            <div style={{
+                backgroundColor: "white",
+                padding: "30px",
+                borderRadius: "16px",
+                minWidth: "500px",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                overflow: "auto",
+                boxShadow: "0 25px 50px rgba(0,0,0,0.25)"
+            }}>
+                <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "25px"
+                }}>
+                    <h2 style={{
+                        background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        fontSize: "1.8rem",
+                        fontWeight: "700",
+                        margin: "0"
+                    }}>
+                        ✏️ Edit Item: {item.name}
+                    </h2>
+                    <button
+                        onClick={onCancel}
+                        style={{
+                            background: "#ef4444",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "40px",
+                            height: "40px",
+                            cursor: "pointer",
+                            fontSize: "1.2rem",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }}
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <form onSubmit={onSubmit} style={{ display: "grid", gap: "20px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                        <div>
+                            <label style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#374151"
+                            }}>
+                                Item Name *
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                placeholder="Enter item name"
+                                style={{
+                                    width: "100%",
+                                    padding: "12px 16px",
+                                    border: "2px solid #e5e7eb",
+                                    borderRadius: "12px",
+                                    fontSize: "1rem",
+                                    transition: "all 0.3s ease"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#3b82f6";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e5e7eb";
+                                    e.target.style.boxShadow = "none";
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#374151"
+                            }}>
+                                SKU *
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.sku}
+                                onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                                placeholder="Enter SKU"
+                                style={{
+                                    width: "100%",
+                                    padding: "12px 16px",
+                                    border: "2px solid #e5e7eb",
+                                    borderRadius: "12px",
+                                    fontSize: "1rem",
+                                    transition: "all 0.3s ease"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#3b82f6";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e5e7eb";
+                                    e.target.style.boxShadow = "none";
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                        <div>
+                            <label style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#374151"
+                            }}>
+                                Category *
+                            </label>
+                            <select
+                                required
+                                value={formData.category}
+                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                style={{
+                                    width: "100%",
+                                    padding: "12px 16px",
+                                    border: "2px solid #e5e7eb",
+                                    borderRadius: "12px",
+                                    fontSize: "1rem",
+                                    background: "white",
+                                    cursor: "pointer",
+                                    transition: "all 0.3s ease"
+                                }}
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#374151"
+                            }}>
+                                Unit Price *
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                required
+                                value={formData.unitPrice}
+                                onChange={(e) => setFormData({...formData, unitPrice: e.target.value})}
+                                placeholder="0.00"
+                                style={{
+                                    width: "100%",
+                                    padding: "12px 16px",
+                                    border: "2px solid #e5e7eb",
+                                    borderRadius: "12px",
+                                    fontSize: "1rem",
+                                    transition: "all 0.3s ease"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#3b82f6";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e5e7eb";
+                                    e.target.style.boxShadow = "none";
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                        <div>
+                            <label style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#374151"
+                            }}>
+                                On Hand Quantity *
+                            </label>
+                            <input
+                                type="number"
+                                required
+                                value={formData.onHand}
+                                onChange={(e) => setFormData({...formData, onHand: e.target.value})}
+                                placeholder="0"
+                                style={{
+                                    width: "100%",
+                                    padding: "12px 16px",
+                                    border: "2px solid #e5e7eb",
+                                    borderRadius: "12px",
+                                    fontSize: "1rem",
+                                    transition: "all 0.3s ease"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#3b82f6";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e5e7eb";
+                                    e.target.style.boxShadow = "none";
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "600",
+                                color: "#374151"
+                            }}>
+                                Minimum Quantity *
+                            </label>
+                            <input
+                                type="number"
+                                required
+                                value={formData.minQty}
+                                onChange={(e) => setFormData({...formData, minQty: e.target.value})}
+                                placeholder="0"
+                                style={{
+                                    width: "100%",
+                                    padding: "12px 16px",
+                                    border: "2px solid #e5e7eb",
+                                    borderRadius: "12px",
+                                    fontSize: "1rem",
+                                    transition: "all 0.3s ease"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#3b82f6";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e5e7eb";
+                                    e.target.style.boxShadow = "none";
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{
+                        display: "flex",
+                        gap: "15px",
+                        justifyContent: "flex-end",
+                        marginTop: "20px"
+                    }}>
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            style={{
+                                background: "#6b7280",
+                                color: "white",
+                                border: "none",
+                                padding: "12px 24px",
+                                borderRadius: "12px",
+                                fontSize: "1rem",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                transition: "all 0.3s ease"
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            style={{
+                                background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                                color: "white",
+                                border: "none",
+                                padding: "12px 24px",
+                                borderRadius: "12px",
+                                fontSize: "1rem",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                transition: "all 0.3s ease"
+                            }}
+                        >
+                            Update Item
                         </button>
                     </div>
                 </form>

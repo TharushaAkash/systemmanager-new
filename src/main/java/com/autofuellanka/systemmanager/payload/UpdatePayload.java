@@ -4,6 +4,7 @@ public class UpdatePayload {
     public String startTime;
     public String endTime;
     public String type;
+    public String status;
     public String fuelType;
     public Double litersRequested;
     public Long locationId;
