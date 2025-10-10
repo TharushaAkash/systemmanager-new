@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { FaEye, FaEyeSlash, FaUser, FaLock, FaArrowLeft, FaSignInAlt } from 'react-icons/fa';
+import './Login.css';
 
 export default function Login({ onRegister, onNavigate }) {
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
 
     const handleSubmit = async (e) => {
@@ -30,144 +33,129 @@ export default function Login({ onRegister, onNavigate }) {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
     return (
-        <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '100vh',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-        }}>
-            <div style={{
-                background: 'white',
-                padding: '2rem',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                width: '100%',
-                maxWidth: '400px'
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div className="login-container">
+            {/* Animated background elements */}
+            <div className="bg-animation">
+                <div className="floating-shape shape-1"></div>
+                <div className="floating-shape shape-2"></div>
+                <div className="floating-shape shape-3"></div>
+                <div className="floating-shape shape-4"></div>
+            </div>
+
+            {/* Glass morphism card */}
+            <div className="login-card">
+                {/* Header */}
+                <div className="login-header">
                     <button
                         onClick={() => onNavigate && onNavigate('home')}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#1a73e8',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            marginBottom: '1rem',
-                            textDecoration: 'underline'
-                        }}
+                        className="back-button"
                     >
-                        ← Back to Home
+                        <FaArrowLeft className="back-icon" />
+                        Back to Home
                     </button>
-                    <h1 style={{ color: '#333', margin: '0 0 0.5rem 0' }}>AutoFuel Lanka</h1>
-                    <p style={{ color: '#666', margin: 0 }}>Sign in to your account</p>
+                    
+                    <div className="logo-section">
+                        <div className="logo-icon">
+                            <FaSignInAlt />
+                        </div>
+                        <h1 className="login-title">AutoFuel Lanka</h1>
+                        <p className="login-subtitle">Welcome back! Sign in to your account</p>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
-                            Email
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="login-form">
+                    {/* Email Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaUser className="input-icon" />
+                            Email Address
                         </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your email"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type="email"
+                                name="email"
+                                value={form.email}
+                                onChange={handleChange}
+                                required
+                                className="form-input"
+                                placeholder="Enter your email"
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
+                    {/* Password Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaLock className="input-icon" />
                             Password
                         </label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your password"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={form.password}
+                                onChange={handleChange}
+                                required
+                                className="form-input"
+                                placeholder="Enter your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={togglePasswordVisibility}
+                                className="password-toggle"
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        </div>
                     </div>
 
+                    {/* Error Message */}
                     {error && (
-                        <div style={{
-                            background: '#fee',
-                            color: '#c33',
-                            padding: '0.75rem',
-                            borderRadius: '4px',
-                            marginBottom: '1rem',
-                            border: '1px solid #fcc'
-                        }}>
-                            {error}
+                        <div className="error-message">
+                            <div className="error-content">
+                                <span className="error-icon">⚠️</span>
+                                {error}
+                            </div>
                         </div>
                     )}
 
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={loading}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            background: loading ? '#ccc' : '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '1rem',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            transition: 'background 0.2s'
-                        }}
+                        className={`submit-button ${loading ? 'loading' : ''}`}
                     >
-                        {loading ? 'Signing in...' : 'Sign In'}
+                        {loading ? (
+                            <div className="loading-spinner"></div>
+                        ) : (
+                            <>
+                                <FaSignInAlt className="button-icon" />
+                                Sign In
+                            </>
+                        )}
                     </button>
                 </form>
 
-                <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-                    <p style={{ color: '#666', margin: '0 0 1rem 0' }}>
+                {/* Footer */}
+                <div className="login-footer">
+                    <p className="footer-text">
                         Don't have an account?{' '}
                         <button
                             onClick={onRegister}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#007bff',
-                                cursor: 'pointer',
-                                textDecoration: 'underline'
-                            }}
+                            className="link-button"
                         >
                             Sign up here
                         </button>
                     </p>
                 </div>
 
-                <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '4px' }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: '#333' }}>Demo Accounts:</h4>
-                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                        <div><strong>Admin:</strong> admin@autofuel.com / admin123</div>
-                        <div><strong>Staff:</strong> staff@autofuel.com / staff123</div>
-                        <div><strong>Customer:</strong> customer@autofuel.com / customer123</div>
-                    </div>
-                </div>
+
             </div>
         </div>
     );

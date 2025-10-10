@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { FaEye, FaEyeSlash, FaUser, FaLock, FaArrowLeft, FaUserPlus, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import './Register.css';
 
 const API_BASE = "http://localhost:8080";
 
@@ -13,6 +15,8 @@ export default function Register({ onLogin, onNavigate }) {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -87,217 +91,208 @@ export default function Register({ onLogin, onNavigate }) {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+
     return (
-        <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '100vh',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-        }}>
-            <div style={{
-                background: 'white',
-                padding: '2rem',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                width: '100%',
-                maxWidth: '500px'
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div className="register-container">
+            {/* Animated background elements */}
+            <div className="bg-animation">
+                <div className="floating-shape shape-1"></div>
+                <div className="floating-shape shape-2"></div>
+                <div className="floating-shape shape-3"></div>
+                <div className="floating-shape shape-4"></div>
+                <div className="floating-shape shape-5"></div>
+            </div>
+
+            {/* Glass morphism card */}
+            <div className="register-card">
+                {/* Header */}
+                <div className="register-header">
                     <button
                         onClick={() => onNavigate && onNavigate('home')}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#1a73e8',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            marginBottom: '1rem',
-                            textDecoration: 'underline'
-                        }}
+                        className="back-button"
                     >
-                        ← Back to Home
+                        <FaArrowLeft className="back-icon" />
+                        Back to Home
                     </button>
-                    <h1 style={{ color: '#333', margin: '0 0 0.5rem 0' }}>AutoFuel Lanka</h1>
-                    <p style={{ color: '#666', margin: 0 }}>Create your account</p>
+                    
+                    <div className="logo-section">
+                        <div className="logo-icon">
+                            <FaUserPlus />
+                        </div>
+                        <h1 className="register-title">AutoFuel Lanka</h1>
+                        <p className="register-subtitle">Join us today! Create your account</p>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="register-form">
+                    {/* Full Name Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaUser className="input-icon" />
                             Full Name *
                         </label>
-                        <input
-                            type="text"
-                            name="fullName"
-                            value={form.fullName}
-                            onChange={handleChange}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your full name"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type="text"
+                                name="fullName"
+                                value={form.fullName}
+                                onChange={handleChange}
+                                required
+                                className="form-input"
+                                placeholder="Enter your full name"
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
-                            Email *
+                    {/* Email Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaEnvelope className="input-icon" />
+                            Email Address *
                         </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your email"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type="email"
+                                name="email"
+                                value={form.email}
+                                onChange={handleChange}
+                                required
+                                className="form-input"
+                                placeholder="Enter your email"
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
-                            Phone
+                    {/* Phone Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaPhone className="input-icon" />
+                            Phone Number
                         </label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            value={form.phone}
-                            onChange={handleChange}
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your phone number"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type="tel"
+                                name="phone"
+                                value={form.phone}
+                                onChange={handleChange}
+                                className="form-input"
+                                placeholder="Enter your phone number"
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
+                    {/* Address Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaMapMarkerAlt className="input-icon" />
                             Address
                         </label>
-                        <input
-                            type="text"
-                            name="address"
-                            value={form.address}
-                            onChange={handleChange}
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your address"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type="text"
+                                name="address"
+                                value={form.address}
+                                onChange={handleChange}
+                                className="form-input"
+                                placeholder="Enter your address"
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
+                    {/* Password Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaLock className="input-icon" />
                             Password *
                         </label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Enter your password"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={form.password}
+                                onChange={handleChange}
+                                required
+                                className="form-input"
+                                placeholder="Enter your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={togglePasswordVisibility}
+                                className="password-toggle"
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
+                    {/* Confirm Password Field */}
+                    <div className="input-group">
+                        <label className="input-label">
+                            <FaLock className="input-icon" />
                             Confirm Password *
                         </label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            value={form.confirmPassword}
-                            onChange={handleChange}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                fontSize: '1rem',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Confirm your password"
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                value={form.confirmPassword}
+                                onChange={handleChange}
+                                required
+                                className="form-input"
+                                placeholder="Confirm your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={toggleConfirmPasswordVisibility}
+                                className="password-toggle"
+                            >
+                                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        </div>
                     </div>
 
+                    {/* Error Message */}
                     {error && (
-                        <div style={{
-                            background: '#fee',
-                            color: '#c33',
-                            padding: '0.75rem',
-                            borderRadius: '4px',
-                            marginBottom: '1rem',
-                            border: '1px solid #fcc'
-                        }}>
-                            {error}
+                        <div className="error-message">
+                            <div className="error-content">
+                                <span className="error-icon">⚠️</span>
+                                {error}
+                            </div>
                         </div>
                     )}
 
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={loading}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            background: loading ? '#ccc' : '#28a745',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '1rem',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            transition: 'background 0.2s',
-                            marginBottom: '1rem'
-                        }}
+                        className={`submit-button ${loading ? 'loading' : ''}`}
                     >
-                        {loading ? 'Creating Account...' : 'Create Account'}
+                        {loading ? (
+                            <div className="loading-spinner"></div>
+                        ) : (
+                            <>
+                                <FaUserPlus className="button-icon" />
+                                Create Account
+                            </>
+                        )}
                     </button>
                 </form>
 
-                <div style={{ textAlign: 'center' }}>
-                    <p style={{ color: '#666', margin: 0 }}>
+                {/* Footer */}
+                <div className="register-footer">
+                    <p className="footer-text">
                         Already have an account?{' '}
                         <button
                             onClick={onLogin}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#007bff',
-                                cursor: 'pointer',
-                                textDecoration: 'underline'
-                            }}
+                            className="link-button"
                         >
                             Sign in here
                         </button>
