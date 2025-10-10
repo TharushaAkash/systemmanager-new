@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = "http://localhost:8080";
 
 export default function FinanceLedger({ onNavigate }) {
+    const { user, token } = useAuth(); // Get the token
     const [entries, setEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState("");
@@ -23,22 +25,24 @@ export default function FinanceLedger({ onNavigate }) {
         setErr("");
         try {
             let url = `${API_BASE}/api/finance/ledger?page=${page}&size=${size}`;
-            
+
             // Add filters to URL
             const params = new URLSearchParams();
             if (filters.from) params.append("from", filters.from);
             if (filters.to) params.append("to", filters.to);
             if (filters.account) params.append("account", filters.account);
             if (filters.type) params.append("type", filters.type);
-            
+
             if (params.toString()) {
                 url += "&" + params.toString();
             }
 
-            const res = await fetch(url);
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            
+
             setEntries(data.content || data);
             setTotalPages(data.totalPages || 0);
         } catch (e) {
@@ -53,9 +57,11 @@ export default function FinanceLedger({ onNavigate }) {
             const params = new URLSearchParams();
             if (filters.from) params.append("from", filters.from);
             if (filters.to) params.append("to", filters.to);
-            
+
             const url = `${API_BASE}/api/finance/ledger/summary?${params.toString()}`;
-            const res = await fetch(url);
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setSummary(data);
@@ -66,7 +72,9 @@ export default function FinanceLedger({ onNavigate }) {
 
     const loadAccounts = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/finance/ledger/accounts`);
+            const res = await fetch(`${API_BASE}/api/finance/ledger/accounts`, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setAccounts(data);
@@ -92,11 +100,13 @@ export default function FinanceLedger({ onNavigate }) {
             if (filters.from) params.append("from", filters.from);
             if (filters.to) params.append("to", filters.to);
             if (filters.account) params.append("account", filters.account);
-            
+
             const url = `${API_BASE}/api/finance/ledger/export/csv?${params.toString()}`;
-            const res = await fetch(url);
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            
+
             const blob = await res.blob();
             const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -139,13 +149,13 @@ export default function FinanceLedger({ onNavigate }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 30 }}>
                 <h1>Finance Ledger</h1>
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button 
+                    <button
                         onClick={exportCSV}
                         style={{ padding: "8px 16px", backgroundColor: "#17a2b8", color: "white", border: "none", borderRadius: 4 }}
                     >
                         Export CSV
                     </button>
-                    <button 
+                    <button
                         onClick={() => onNavigate && onNavigate("invoices")}
                         style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4 }}
                     >
@@ -156,26 +166,26 @@ export default function FinanceLedger({ onNavigate }) {
 
             {/* Summary Cards */}
             {summary && (
-                <div style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                    gap: 20, 
-                    marginBottom: 30 
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gap: 20,
+                    marginBottom: 30
                 }}>
-                    <SummaryCard 
-                        title="Total Credits" 
+                    <SummaryCard
+                        title="Total Credits"
                         value={formatCurrency(summary.totalCredits)}
                         color="#28a745"
                         icon="⬆️"
                     />
-                    <SummaryCard 
-                        title="Total Debits" 
+                    <SummaryCard
+                        title="Total Debits"
                         value={formatCurrency(summary.totalDebits)}
                         color="#dc3545"
                         icon="⬇️"
                     />
-                    <SummaryCard 
-                        title="Net Amount" 
+                    <SummaryCard
+                        title="Net Amount"
                         value={formatCurrency(summary.netAmount)}
                         color={summary.netAmount >= 0 ? "#28a745" : "#dc3545"}
                         icon="💰"
@@ -187,13 +197,13 @@ export default function FinanceLedger({ onNavigate }) {
             {summary && summary.accountBalances && Object.keys(summary.accountBalances).length > 0 && (
                 <div style={{ marginBottom: 30 }}>
                     <h2>Account Balances</h2>
-                    <div style={{ 
-                        display: "grid", 
-                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                        gap: 15 
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                        gap: 15
                     }}>
                         {Object.entries(summary.accountBalances).map(([account, balance]) => (
-                            <AccountBalanceCard 
+                            <AccountBalanceCard
                                 key={account}
                                 account={account}
                                 balance={balance}
@@ -205,10 +215,10 @@ export default function FinanceLedger({ onNavigate }) {
             )}
 
             {/* Filters */}
-            <div style={{ 
-                padding: 16, 
-                backgroundColor: "#f8f9fa", 
-                borderRadius: 8, 
+            <div style={{
+                padding: 16,
+                backgroundColor: "#f8f9fa",
+                borderRadius: 8,
                 marginBottom: 20,
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -285,12 +295,12 @@ export default function FinanceLedger({ onNavigate }) {
                         <button
                             onClick={() => setPage(Math.max(0, page - 1))}
                             disabled={page === 0}
-                            style={{ 
-                                padding: "6px 12px", 
-                                backgroundColor: page === 0 ? "#e9ecef" : "#007bff", 
-                                color: page === 0 ? "#6c757d" : "white", 
-                                border: "none", 
-                                borderRadius: 4 
+                            style={{
+                                padding: "6px 12px",
+                                backgroundColor: page === 0 ? "#e9ecef" : "#007bff",
+                                color: page === 0 ? "#6c757d" : "white",
+                                border: "none",
+                                borderRadius: 4
                             }}
                         >
                             Previous
@@ -298,12 +308,12 @@ export default function FinanceLedger({ onNavigate }) {
                         <button
                             onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                             disabled={page >= totalPages - 1}
-                            style={{ 
-                                padding: "6px 12px", 
-                                backgroundColor: page >= totalPages - 1 ? "#e9ecef" : "#007bff", 
-                                color: page >= totalPages - 1 ? "#6c757d" : "white", 
-                                border: "none", 
-                                borderRadius: 4 
+                            style={{
+                                padding: "6px 12px",
+                                backgroundColor: page >= totalPages - 1 ? "#e9ecef" : "#007bff",
+                                color: page >= totalPages - 1 ? "#6c757d" : "white",
+                                border: "none",
+                                borderRadius: 4
                             }}
                         >
                             Next
@@ -336,7 +346,7 @@ export default function FinanceLedger({ onNavigate }) {
                             <td>{formatDate(entry.transactionDate)}</td>
                             <td style={{ fontWeight: "bold" }}>{entry.account}</td>
                             <td>
-                                <span style={{ 
+                                <span style={{
                                     color: getTypeColor(entry.transactionType),
                                     fontWeight: "bold",
                                     padding: "4px 8px",
@@ -346,7 +356,7 @@ export default function FinanceLedger({ onNavigate }) {
                                     {getTypeIcon(entry.transactionType)} {entry.transactionType}
                                 </span>
                             </td>
-                            <td style={{ 
+                            <td style={{
                                 fontWeight: "bold",
                                 color: getTypeColor(entry.transactionType)
                             }}>
@@ -397,9 +407,9 @@ function AccountBalanceCard({ account, balance, formatCurrency }) {
             <div style={{ fontSize: "1.2rem", fontWeight: "bold", marginBottom: 5 }}>
                 {account.replace(/_/g, " ")}
             </div>
-            <div style={{ 
-                fontSize: "1.1rem", 
-                fontWeight: "bold", 
+            <div style={{
+                fontSize: "1.1rem",
+                fontWeight: "bold",
                 color: balance >= 0 ? "#28a745" : "#dc3545"
             }}>
                 {formatCurrency(balance)}

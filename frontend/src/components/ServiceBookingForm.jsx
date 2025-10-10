@@ -66,52 +66,30 @@ export default function ServiceBookingForm({ onNavigate, selectedService = null 
         setSuccess("");
 
         try {
-            const bookingData = {
-                customerId: user.id,
-                vehicleId: parseInt(bookingForm.vehicleId),
-                locationId: parseInt(bookingForm.locationId),
-                type: "SERVICE",
-                startTime: `${bookingForm.preferredDate}T${bookingForm.preferredTime}:00`,
-                endTime: `${bookingForm.preferredDate}T${parseInt(bookingForm.preferredTime.split(':')[0]) + 2}:00:00`, // 2 hours later
-                serviceTypeId: 1, // Default service type
-                status: "PENDING",
-                description: bookingForm.description,
-                urgency: bookingForm.urgency,
-                contactPreference: bookingForm.contactPreference
-            };
-
-            const response = await fetch(`${API_BASE}/api/customers/${user.id}/bookings`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(bookingData)
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `HTTP ${response.status}`);
+            // Validate required fields
+            if (!bookingForm.vehicleId || !bookingForm.locationId || !bookingForm.preferredDate || !bookingForm.preferredTime) {
+                throw new Error("Please fill in all required fields");
             }
 
-            setSuccess("Booking submitted successfully! You can view and edit it in 'My Bookings' until it's confirmed.");
-            
-            // Reset form
-            setBookingForm({
-                vehicleId: "",
-                locationId: "",
-                serviceType: "",
-                preferredDate: "",
-                preferredTime: "",
-                description: "",
-                urgency: "NORMAL",
-                contactPreference: "EMAIL"
-            });
+            // Get vehicle and location details for payment gateway
+            const selectedVehicle = vehicles.find(v => v.id === parseInt(bookingForm.vehicleId));
+            const selectedLocation = locations.find(l => l.id === parseInt(bookingForm.locationId));
 
-            // Navigate to my bookings after 3 seconds
-            setTimeout(() => {
-                onNavigate('my-bookings');
-            }, 3000);
+            const bookingData = {
+                vehicleId: bookingForm.vehicleId,
+                locationId: bookingForm.locationId,
+                serviceType: bookingForm.serviceType,
+                preferredDate: bookingForm.preferredDate,
+                preferredTime: bookingForm.preferredTime,
+                description: bookingForm.description,
+                urgency: bookingForm.urgency,
+                contactPreference: bookingForm.contactPreference,
+                vehicle: selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model} (${selectedVehicle.year}) - ${selectedVehicle.licensePlate}` : "",
+                location: selectedLocation ? `${selectedLocation.name} - ${selectedLocation.address}` : ""
+            };
+
+            // Navigate to payment gateway with booking data
+            onNavigate('payment-gateway', bookingData);
 
         } catch (e) {
             setError(e.message);
@@ -491,7 +469,7 @@ export default function ServiceBookingForm({ onNavigate, selectedService = null 
                                 boxShadow: "0 4px 12px rgba(26, 115, 232, 0.3)"
                             }}
                         >
-                            {loading ? "Submitting..." : "📅 Submit Booking"}
+                            {loading ? "Processing..." : "💳 Proceed to Payment"}
                         </button>
                     </div>
                 </form>
@@ -506,11 +484,11 @@ export default function ServiceBookingForm({ onNavigate, selectedService = null 
                 marginTop: "20px",
                 textAlign: "center"
             }}>
-                <h4 style={{ color: "#495057", margin: "0 0 10px 0" }}>📋 Booking Information</h4>
+                <h4 style={{ color: "#495057", margin: "0 0 10px 0" }}>💳 Payment Process</h4>
                 <p style={{ color: "#6c757d", margin: 0, fontSize: "14px", lineHeight: "1.5" }}>
-                    Your booking will be in <strong>PENDING</strong> status initially. You can edit or cancel it 
-                    until it's <strong>CONFIRMED</strong> by our team. We'll contact you within 24 hours to confirm 
-                    the appointment and provide a detailed quote.
+                    After filling the booking details, you'll be redirected to our secure payment gateway 
+                    to complete your booking. Payment is required to confirm your appointment. 
+                    An invoice will be generated automatically after successful payment.
                 </p>
             </div>
         </div>

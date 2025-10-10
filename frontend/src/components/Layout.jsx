@@ -26,6 +26,7 @@ import CustomerProfile from "./CustomerProfile";
 import ServicesShowcase from "./ServicesShowcase";
 import ServiceCenterBooking from "./ServiceCenterBooking";
 import CustomerMyBookings from "./CustomerMyBookings";
+import PaymentGateway from "./PaymentGateway";
 
 function Home({ onNavigate }) {
     const { user, hasRole } = useAuth();
@@ -571,7 +572,7 @@ export default function Layout({ onNavigate }) {
         
         // Define role-based page access
         const rolePages = {
-            'CUSTOMER': ['home', 'my-vehicles', 'services', 'service-booking', 'my-bookings', 'profile'],
+            'CUSTOMER': ['home', 'my-vehicles', 'services', 'service-booking', 'payment-gateway', 'my-bookings', 'profile'],
             'TECHNICIAN': ['home', 'job-management', 'current-jobs', 'technicians', 'pending-jobs'],
             'STAFF': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard'],
             'FINANCE': ['home', 'invoices', 'invoice-detail', 'finance-ledger'],
@@ -792,7 +793,8 @@ export default function Layout({ onNavigate }) {
                         {/* Customer Pages */}
                         {page === "my-vehicles" && <section className="section"><div className="container"><MyVehicles /></div></section>}
                         {page === "services" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServicesShowcase onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                        {page === "service-booking" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServiceCenterBooking bookingType={navigationParams.bookingType || "SERVICE"} showTypeSelector={navigationParams.showTypeSelector !== false} /></ProtectedRoute></div></section>}
+                        {page === "service-booking" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><ServiceCenterBooking bookingType={navigationParams.bookingType || "SERVICE"} showTypeSelector={navigationParams.showTypeSelector !== false} onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "payment-gateway" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><PaymentGateway bookingData={navigationParams.bookingData || navigationParams} onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "my-bookings" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><CustomerMyBookings onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "profile" && <section className="section"><div className="container"><ProtectedRoute requiredRole="CUSTOMER"><CustomerProfile /></ProtectedRoute></div></section>}
                     </main>

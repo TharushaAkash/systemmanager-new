@@ -31,18 +31,48 @@ public class BillingController {
 
     // Invoice endpoints
 
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint() {
+        return ResponseEntity.ok("Billing controller is working");
+    }
+
     @GetMapping("/invoices")
-    public Page<Invoice> getAllInvoices(
+    public ResponseEntity<?> getAllInvoices(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        return invoiceRepository.findAllByOrderByCreatedAtDesc(pageable);
+        try {
+            System.out.println("🔍 INVOICE LIST DEBUG:");
+            System.out.println("Page: " + page + ", Size: " + size);
+            System.out.println("Sort: " + sortBy + " " + sortDir);
+            
+            // Test basic repository access
+            System.out.println("🔍 Testing repository count...");
+            long count = invoiceRepository.count();
+            System.out.println("✅ Repository count successful: " + count);
+            
+            // Test simple list
+            System.out.println("🔍 Testing simple list...");
+            List<Invoice> allInvoices = invoiceRepository.findAll();
+            System.out.println("✅ Simple list successful. Count: " + allInvoices.size());
+            
+            // Test pagination
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            
+            System.out.println("🔍 Calling paginated repository...");
+            Page<Invoice> result = invoiceRepository.findAllByOrderByCreatedAtDesc(pageable);
+            System.out.println("✅ Paginated call successful. Total elements: " + result.getTotalElements());
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.out.println("❌ ERROR in getAllInvoices: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/invoices/{id}")

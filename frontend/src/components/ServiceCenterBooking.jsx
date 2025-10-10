@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = "http://localhost:8080";
 
-export default function ServiceCenterBooking({ bookingType = "SERVICE", showTypeSelector = true }) {
+export default function ServiceCenterBooking({ bookingType = "SERVICE", showTypeSelector = true, onNavigate }) {
     const { user, token } = useAuth();
     const [vehicles, setVehicles] = useState([]);
     const [locations, setLocations] = useState([]);
@@ -94,63 +94,44 @@ export default function ServiceCenterBooking({ bookingType = "SERVICE", showType
         setSuccess("");
 
         try {
-            // Ensure datetime format includes seconds
-            const formatDateTime = (dateTimeStr) => {
-                if (!dateTimeStr) return dateTimeStr;
-                // If the string doesn't end with seconds, add :00
-                return dateTimeStr.includes(':00') ? dateTimeStr : `${dateTimeStr}:00`;
-            };
+            // Validate required fields
+            if (!form.locationId || !form.vehicleId || !form.startTime || !form.endTime) {
+                throw new Error("Please fill in all required fields");
+            }
 
-            const requestBody = {
-                locationId: Number(form.locationId),
-                vehicleId: Number(form.vehicleId),
-                type: form.bookingType,
-                startTime: formatDateTime(form.startTime),
-                endTime: formatDateTime(form.endTime),
-                status: form.status,
+            // Get vehicle and location details for payment gateway
+            const selectedVehicle = vehicles.find(v => v.id === parseInt(form.vehicleId));
+            const selectedLocation = locations.find(l => l.id === parseInt(form.locationId));
+            const selectedServiceType = serviceTypes.find(s => s.id === parseInt(form.serviceTypeId));
+
+            const bookingData = {
+                vehicleId: form.vehicleId,
+                locationId: form.locationId,
+                serviceTypeId: form.serviceTypeId,
+                serviceType: selectedServiceType ? selectedServiceType.name : form.bookingType,
+                preferredDate: form.startTime.split('T')[0],
+                preferredTime: form.startTime.split('T')[1].substring(0, 5),
                 description: form.description,
                 urgency: form.urgency,
                 contactPreference: form.contactPreference,
-                ...(form.bookingType === "SERVICE" && { serviceTypeId: Number(form.serviceTypeId) }),
-                ...(form.bookingType === "FUEL" && { 
-                    fuelType: form.fuelType,
-                    litersRequested: Number(form.litersRequested)
-                })
+                vehicle: selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model} (${selectedVehicle.year}) - ${selectedVehicle.plateNumber}` : "",
+                location: selectedLocation ? `${selectedLocation.name} - ${selectedLocation.address}` : "",
+                bookingType: form.bookingType,
+                fuelType: form.fuelType,
+                litersRequested: form.litersRequested
             };
 
-            const response = await fetch(`${API_BASE}/api/customers/${user.id}/bookings`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // Navigate to payment gateway with booking data
+            console.log("ServiceCenterBooking: Navigating to payment gateway with data:", bookingData);
+            if (onNavigate) {
+                onNavigate('payment-gateway', bookingData);
+            } else {
+                throw new Error("Navigation not available");
             }
 
-            // Reset form and show success
-            setForm({
-                locationId: "",
-                vehicleId: "",
-                serviceTypeId: "",
-                bookingType: "SERVICE",
-                fuelType: "",
-                litersRequested: "",
-                startTime: "",
-                endTime: "",
-                status: "PENDING",
-                description: "",
-                urgency: "NORMAL",
-                contactPreference: "EMAIL"
-            });
-            setSuccess(`${form.bookingType === "SERVICE" ? "Service" : "Fuel"} booking created successfully!`);
         } catch (err) {
-            console.error("Error creating booking:", err);
-            setError(`Failed to create booking: ${err.message}`);
+            console.error("Error preparing booking:", err);
+            setError(`Failed to prepare booking: ${err.message}`);
         }
     };
 
@@ -536,7 +517,7 @@ export default function ServiceCenterBooking({ bookingType = "SERVICE", showType
                                 minWidth: "200px"
                             }}
                         >
-                            {form.bookingType === "SERVICE" ? "🔧 Book Service Appointment" : "⛽ Book Fuel Station Visit"}
+                            {form.bookingType === "SERVICE" ? "💳 Proceed to Payment" : "💳 Proceed to Payment"}
                         </button>
                     </div>
                 </form>

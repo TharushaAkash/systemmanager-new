@@ -9,6 +9,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 public class SecurityConfig {
@@ -25,7 +30,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(reg -> reg
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/register").permitAll()
-                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/service-types/**").permitAll()
                         .requestMatchers("/api/inventory/**").permitAll()
                         .requestMatchers("/api/bookings/**").permitAll()
@@ -36,19 +40,20 @@ public class SecurityConfig {
                         .requestMatchers("/api/vehicle-types/**").permitAll()
                         .requestMatchers("/api/locations/**").permitAll()
                         .requestMatchers("/api/reports/**").permitAll()
-                        .requestMatchers("/api/billing/**").hasAnyRole("FINANCE", "STAFF", "ADMIN")
-                        .requestMatchers("/api/finance/**").hasAnyRole("FINANCE", "STAFF", "ADMIN")
+                        .requestMatchers("/api/billing/**").permitAll()
+                        .requestMatchers("/api/payments/**").permitAll()
+                        .requestMatchers("/api/finance/**").hasAnyRole("FINANCE", "ADMIN") // Added ADMIN role
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/staff/**").hasAnyRole("STAFF", "ADMIN")
                         .requestMatchers("/api/**").permitAll()
-
                         .anyRequest().authenticated()
                 )
-                // Enable JWT filter + CORS + basic auth
                 .addFilterBefore(new JwtAuthFilter(jwt), UsernamePasswordAuthenticationFilter.class)
-                .cors().and()
+                .cors(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
+
+
 }

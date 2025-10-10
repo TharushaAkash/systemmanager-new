@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = "http://localhost:8080";
 
 export default function InvoiceDetail({ invoiceId, onNavigate }) {
+    const { token } = useAuth(); // Get the token
     const [invoice, setInvoice] = useState(null);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -13,7 +15,9 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
         setLoading(true);
         setErr("");
         try {
-            const res = await fetch(`${API_BASE}/api/billing/invoices/${invoiceId}`);
+            const res = await fetch(`${API_BASE}/api/billing/invoices/${invoiceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setInvoice(data);
@@ -26,7 +30,9 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
 
     const loadPayments = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/billing/payments/invoice/${invoiceId}`);
+            const res = await fetch(`${API_BASE}/api/billing/payments/invoice/${invoiceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setPayments(data);
@@ -103,20 +109,20 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
                     </p>
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button 
+                    <button
                         onClick={() => setShowPaymentModal(true)}
                         disabled={invoice.balance <= 0}
-                        style={{ 
-                            padding: "8px 16px", 
-                            backgroundColor: invoice.balance > 0 ? "#28a745" : "#6c757d", 
-                            color: "white", 
-                            border: "none", 
-                            borderRadius: 4 
+                        style={{
+                            padding: "8px 16px",
+                            backgroundColor: invoice.balance > 0 ? "#28a745" : "#6c757d",
+                            color: "white",
+                            border: "none",
+                            borderRadius: 4
                         }}
                     >
                         Record Payment
                     </button>
-                    <button 
+                    <button
                         onClick={() => onNavigate && onNavigate("invoices")}
                         style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4 }}
                     >
@@ -126,32 +132,32 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
             </div>
 
             {/* Status and Balance */}
-            <div style={{ 
-                display: "grid", 
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                gap: 20, 
-                marginBottom: 30 
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 20,
+                marginBottom: 30
             }}>
-                <StatusCard 
-                    title="Status" 
+                <StatusCard
+                    title="Status"
                     value={invoice.status}
                     color={getStatusColor(invoice.status)}
                     icon={getStatusIcon(invoice.status)}
                 />
-                <StatusCard 
-                    title="Total Amount" 
+                <StatusCard
+                    title="Total Amount"
                     value={formatCurrency(invoice.totalAmount)}
                     color="#007bff"
                     icon="💰"
                 />
-                <StatusCard 
-                    title="Paid Amount" 
+                <StatusCard
+                    title="Paid Amount"
                     value={formatCurrency(invoice.paidAmount)}
                     color="#28a745"
                     icon="✅"
                 />
-                <StatusCard 
-                    title="Balance" 
+                <StatusCard
+                    title="Balance"
                     value={formatCurrency(invoice.balance)}
                     color={invoice.balance > 0 ? "#dc3545" : "#28a745"}
                     icon={invoice.balance > 0 ? "⚠️" : "✅"}
@@ -176,9 +182,9 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
                         invoice.invoiceLines.map((line, index) => (
                             <tr key={index}>
                                 <td>
-                                    <span style={{ 
-                                        padding: "4px 8px", 
-                                        borderRadius: 4, 
+                                    <span style={{
+                                        padding: "4px 8px",
+                                        borderRadius: 4,
                                         backgroundColor: line.type === "SERVICE" ? "#e3f2fd" : "#f3e5f5",
                                         fontSize: "12px",
                                         fontWeight: "bold"
@@ -223,7 +229,7 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
                 {payments.length > 0 ? (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                         {payments.map((payment) => (
-                            <PaymentChip 
+                            <PaymentChip
                                 key={payment.id}
                                 payment={payment}
                                 formatCurrency={formatCurrency}
@@ -239,7 +245,7 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
 
             {/* Payment Modal */}
             {showPaymentModal && (
-                <PaymentModal 
+                <PaymentModal
                     invoice={invoice}
                     onClose={() => setShowPaymentModal(false)}
                     onSuccess={() => {
@@ -247,6 +253,7 @@ export default function InvoiceDetail({ invoiceId, onNavigate }) {
                         loadInvoice();
                         loadPayments();
                     }}
+                    token={token} // Pass token to modal
                 />
             )}
         </div>
@@ -305,7 +312,7 @@ function PaymentChip({ payment, formatCurrency, formatDate, getPaymentMethodIcon
 }
 
 // Payment Modal Component
-function PaymentModal({ invoice, onClose, onSuccess }) {
+function PaymentModal({ invoice, onClose, onSuccess, token }) {
     const [amount, setAmount] = useState(invoice.balance);
     const [method, setMethod] = useState("CASH");
     const [reference, setReference] = useState("");
@@ -320,7 +327,10 @@ function PaymentModal({ invoice, onClose, onSuccess }) {
         try {
             const res = await fetch(`${API_BASE}/api/billing/payments`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}` // Add authentication
+                },
                 body: JSON.stringify({
                     invoiceId: invoice.id,
                     amount: amount,
@@ -331,7 +341,7 @@ function PaymentModal({ invoice, onClose, onSuccess }) {
             });
 
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            
+
             onSuccess();
         } catch (e) {
             alert("Error recording payment: " + e.message);
@@ -363,7 +373,7 @@ function PaymentModal({ invoice, onClose, onSuccess }) {
             }}>
                 <h3>Record Payment</h3>
                 <p>Invoice #{invoice.invoiceNumber} • Balance: {formatCurrency(invoice.balance)}</p>
-                
+
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: 15 }}>
                         <label style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}>Amount:</label>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = "http://localhost:8080";
 
 export default function InvoiceList({ onNavigate }) {
+    const { token } = useAuth(); // Get the token
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState("");
@@ -20,15 +22,17 @@ export default function InvoiceList({ onNavigate }) {
         setErr("");
         try {
             let url = `${API_BASE}/api/billing/invoices?page=${page}&size=${size}`;
-            
+
             if (filters.status) {
                 url += `&status=${filters.status}`;
             }
 
-            const res = await fetch(url);
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            
+
             setInvoices(data.content || data);
             setTotalPages(data.totalPages || 0);
         } catch (e) {
@@ -40,7 +44,9 @@ export default function InvoiceList({ onNavigate }) {
 
     const loadSummary = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/billing/summary`);
+            const res = await fetch(`${API_BASE}/api/billing/summary`, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setSummary(data);
@@ -54,10 +60,12 @@ export default function InvoiceList({ onNavigate }) {
             await loadInvoices();
             return;
         }
-        
+
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE}/api/billing/invoices/search?q=${encodeURIComponent(filters.search)}`);
+            const res = await fetch(`${API_BASE}/api/billing/invoices/search?q=${encodeURIComponent(filters.search)}`, {
+                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             setInvoices(data);
@@ -113,13 +121,13 @@ export default function InvoiceList({ onNavigate }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 30 }}>
                 <h1>Invoices</h1>
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button 
+                    <button
                         onClick={() => onNavigate && onNavigate("finance-ledger")}
                         style={{ padding: "8px 16px", backgroundColor: "#17a2b8", color: "white", border: "none", borderRadius: 4 }}
                     >
                         Finance Ledger
                     </button>
-                    <button 
+                    <button
                         onClick={() => onNavigate && onNavigate("home")}
                         style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4 }}
                     >
@@ -130,38 +138,38 @@ export default function InvoiceList({ onNavigate }) {
 
             {/* Summary Cards */}
             {summary && (
-                <div style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-                    gap: 20, 
-                    marginBottom: 30 
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gap: 20,
+                    marginBottom: 30
                 }}>
-                    <SummaryCard 
-                        title="Total Invoices" 
+                    <SummaryCard
+                        title="Total Invoices"
                         value={summary.totalInvoices}
                         color="#007bff"
                         icon="📄"
                     />
-                    <SummaryCard 
-                        title="Unpaid Invoices" 
+                    <SummaryCard
+                        title="Unpaid Invoices"
                         value={summary.unpaidInvoices}
                         color="#dc3545"
                         icon="⚠️"
                     />
-                    <SummaryCard 
-                        title="Overdue Invoices" 
+                    <SummaryCard
+                        title="Overdue Invoices"
                         value={summary.overdueInvoices}
                         color="#fd7e14"
                         icon="🚨"
                     />
-                    <SummaryCard 
-                        title="Outstanding Balance" 
+                    <SummaryCard
+                        title="Outstanding Balance"
                         value={formatCurrency(summary.totalOutstanding)}
                         color="#6f42c1"
                         icon="💰"
                     />
-                    <SummaryCard 
-                        title="Monthly Revenue" 
+                    <SummaryCard
+                        title="Monthly Revenue"
                         value={formatCurrency(summary.monthlyRevenue)}
                         color="#28a745"
                         icon="📈"
@@ -170,10 +178,10 @@ export default function InvoiceList({ onNavigate }) {
             )}
 
             {/* Filters */}
-            <div style={{ 
-                padding: 16, 
-                backgroundColor: "#f8f9fa", 
-                borderRadius: 8, 
+            <div style={{
+                padding: 16,
+                backgroundColor: "#f8f9fa",
+                borderRadius: 8,
                 marginBottom: 20,
                 display: "flex",
                 gap: 16,
@@ -189,59 +197,59 @@ export default function InvoiceList({ onNavigate }) {
                         onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                         style={{ padding: "8px", border: "1px solid #ccc", borderRadius: 4, minWidth: 250 }}
                     />
-                    <button 
+                    <button
                         onClick={handleSearch}
                         style={{ marginLeft: 8, padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4 }}
                     >
                         Search
                     </button>
                 </div>
-                
+
                 <div style={{ display: "flex", gap: 8 }}>
                     <button
                         onClick={() => handleStatusFilter("")}
-                        style={{ 
-                            padding: "8px 12px", 
-                            backgroundColor: filters.status === "" ? "#007bff" : "#e9ecef", 
-                            color: filters.status === "" ? "white" : "black", 
-                            border: "none", 
-                            borderRadius: 4 
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: filters.status === "" ? "#007bff" : "#e9ecef",
+                            color: filters.status === "" ? "white" : "black",
+                            border: "none",
+                            borderRadius: 4
                         }}
                     >
                         All
                     </button>
                     <button
                         onClick={() => handleStatusFilter("UNPAID")}
-                        style={{ 
-                            padding: "8px 12px", 
-                            backgroundColor: filters.status === "UNPAID" ? "#dc3545" : "#e9ecef", 
-                            color: filters.status === "UNPAID" ? "white" : "black", 
-                            border: "none", 
-                            borderRadius: 4 
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: filters.status === "UNPAID" ? "#dc3545" : "#e9ecef",
+                            color: filters.status === "UNPAID" ? "white" : "black",
+                            border: "none",
+                            borderRadius: 4
                         }}
                     >
                         Unpaid
                     </button>
                     <button
                         onClick={() => handleStatusFilter("PARTIAL")}
-                        style={{ 
-                            padding: "8px 12px", 
-                            backgroundColor: filters.status === "PARTIAL" ? "#ffc107" : "#e9ecef", 
-                            color: filters.status === "PARTIAL" ? "black" : "black", 
-                            border: "none", 
-                            borderRadius: 4 
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: filters.status === "PARTIAL" ? "#ffc107" : "#e9ecef",
+                            color: filters.status === "PARTIAL" ? "black" : "black",
+                            border: "none",
+                            borderRadius: 4
                         }}
                     >
                         Partial
                     </button>
                     <button
                         onClick={() => handleStatusFilter("PAID")}
-                        style={{ 
-                            padding: "8px 12px", 
-                            backgroundColor: filters.status === "PAID" ? "#28a745" : "#e9ecef", 
-                            color: filters.status === "PAID" ? "white" : "black", 
-                            border: "none", 
-                            borderRadius: 4 
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: filters.status === "PAID" ? "#28a745" : "#e9ecef",
+                            color: filters.status === "PAID" ? "white" : "black",
+                            border: "none",
+                            borderRadius: 4
                         }}
                     >
                         Paid
@@ -257,12 +265,12 @@ export default function InvoiceList({ onNavigate }) {
                         <button
                             onClick={() => setPage(Math.max(0, page - 1))}
                             disabled={page === 0}
-                            style={{ 
-                                padding: "6px 12px", 
-                                backgroundColor: page === 0 ? "#e9ecef" : "#007bff", 
-                                color: page === 0 ? "#6c757d" : "white", 
-                                border: "none", 
-                                borderRadius: 4 
+                            style={{
+                                padding: "6px 12px",
+                                backgroundColor: page === 0 ? "#e9ecef" : "#007bff",
+                                color: page === 0 ? "#6c757d" : "white",
+                                border: "none",
+                                borderRadius: 4
                             }}
                         >
                             Previous
@@ -270,12 +278,12 @@ export default function InvoiceList({ onNavigate }) {
                         <button
                             onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                             disabled={page >= totalPages - 1}
-                            style={{ 
-                                padding: "6px 12px", 
-                                backgroundColor: page >= totalPages - 1 ? "#e9ecef" : "#007bff", 
-                                color: page >= totalPages - 1 ? "#6c757d" : "white", 
-                                border: "none", 
-                                borderRadius: 4 
+                            style={{
+                                padding: "6px 12px",
+                                backgroundColor: page >= totalPages - 1 ? "#e9ecef" : "#007bff",
+                                color: page >= totalPages - 1 ? "#6c757d" : "white",
+                                border: "none",
+                                borderRadius: 4
                             }}
                         >
                             Next
@@ -312,14 +320,14 @@ export default function InvoiceList({ onNavigate }) {
                             <td>{formatDate(invoice.createdAt)}</td>
                             <td>{formatCurrency(invoice.totalAmount)}</td>
                             <td>{formatCurrency(invoice.paidAmount)}</td>
-                            <td style={{ 
+                            <td style={{
                                 fontWeight: "bold",
                                 color: invoice.balance > 0 ? "#dc3545" : "#28a745"
                             }}>
                                 {formatCurrency(invoice.balance)}
                             </td>
                             <td>
-                                <span style={{ 
+                                <span style={{
                                     color: getStatusColor(invoice.status),
                                     fontWeight: "bold",
                                     padding: "4px 8px",

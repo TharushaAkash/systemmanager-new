@@ -28,7 +28,7 @@ public class Payment {
     private Double amount;
 
     @Column(name = "reference", length = 100)
-    private String reference; // Transaction ID, check number, etc.
+    private String reference;
 
     @Column(name = "notes", length = 500)
     private String notes;

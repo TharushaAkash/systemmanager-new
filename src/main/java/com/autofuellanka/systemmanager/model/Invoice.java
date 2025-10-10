@@ -1,5 +1,6 @@
 package com.autofuellanka.systemmanager.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ public class Invoice {
     @Column(name = "invoice_number", nullable = false, unique = true, length = 50)
     private String invoiceNumber;
 
-    @Column(name = "booking_id", nullable = false)
+    @Column(name = "booking_id", nullable = false, unique = true)
     private Long bookingId;
 
     @Column(name = "subtotal", nullable = false)
@@ -53,9 +54,11 @@ public class Invoice {
 
     // Relationships
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<InvoiceLine> invoiceLines;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Payment> payments;
 
     @PrePersist
@@ -73,14 +76,21 @@ public class Invoice {
     }
 
     public void calculateBalance() {
-        balance = totalAmount - paidAmount;
+        // Null-safe calculation
+        Double safeTotal = (totalAmount != null) ? totalAmount : 0.0;
+        Double safePaid = (paidAmount != null) ? paidAmount : 0.0;
+        balance = safeTotal - safePaid;
         updateStatus();
     }
 
     private void updateStatus() {
-        if (balance <= 0) {
+        // Null-safe status update
+        Double safeBalance = (balance != null) ? balance : 0.0;
+        Double safePaid = (paidAmount != null) ? paidAmount : 0.0;
+
+        if (safeBalance <= 0) {
             status = InvoiceStatus.PAID;
-        } else if (paidAmount > 0) {
+        } else if (safePaid > 0) {
             status = InvoiceStatus.PARTIAL;
         } else {
             status = InvoiceStatus.UNPAID;

@@ -22,9 +22,9 @@ export default function RoleBasedNavigation({ onNavigate, currentPage }) {
                         jobsRes.json()
                     ]);
 
-                    // Count bookings that are CONFIRMED and don't have jobs assigned yet
+                    // Count bookings that are CONFIRMED or COMPLETED and don't have jobs assigned yet
                     const pending = bookingsData.filter(booking => 
-                        booking.status === 'CONFIRMED' && 
+                        (booking.status === 'CONFIRMED' || booking.status === 'COMPLETED') && 
                         !jobsData.some(job => job.bookingId === booking.id)
                     ).length;
 
