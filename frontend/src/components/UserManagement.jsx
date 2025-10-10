@@ -160,6 +160,23 @@ export default function UserManagement() {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
 
         try {
+            // First check if user has related bookings
+            const bookingsResponse = await fetch(`${API_BASE}/api/bookings?userId=${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (bookingsResponse.ok) {
+                const bookings = await bookingsResponse.json();
+                if (bookings.length > 0) {
+                    setError(`Cannot delete this user because they have ${bookings.length} associated booking(s). Please delete the bookings first.`);
+                    return;
+                }
+            }
+
+            // Proceed with deletion if no bookings exist
             const response = await fetch(`${API_BASE}/api/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
@@ -169,7 +186,28 @@ export default function UserManagement() {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to delete user. Status: ${response.status}`);
+                let message = `Failed to delete user. Status: ${response.status}`;
+
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) {
+                        message = errorData.message;
+
+                        // Check for foreign key constraint errors
+                        if (message.includes('foreign key constraint') ||
+                            message.includes('1451') ||
+                            message.includes('Cannot delete or update a parent row')) {
+                            message = 'Cannot delete this user because they have associated bookings. Please delete the bookings first or reassign them to another user.';
+                        }
+                    }
+                } catch (e) {
+                    // If we can't parse JSON, check status text
+                    if (response.statusText) {
+                        message = response.statusText;
+                    }
+                }
+
+                throw new Error(message);
             }
 
             await fetchUsers();
@@ -310,6 +348,19 @@ export default function UserManagement() {
                     border: "1px solid #e2e8f0",
                     textAlign: "center"
                 }}>
+                    <div style={{ fontSize: "2rem", fontWeight: "700", color: "#dc2626", marginBottom: "8px" }}>
+                        {users.filter(u => u.role === 'MANAGER').length}
+                    </div>
+                    <div style={{ color: "#6b7280", fontSize: "0.875rem", fontWeight: "500" }}>Managers</div>
+                </div>
+                <div style={{ 
+                    background: "white", 
+                    padding: "24px", 
+                    borderRadius: "12px", 
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                    border: "1px solid #e2e8f0",
+                    textAlign: "center"
+                }}>
                     <div style={{ fontSize: "2rem", fontWeight: "700", color: "#ef4444", marginBottom: "8px" }}>
                         {users.filter(u => u.role === 'ADMIN').length}
                     </div>
@@ -368,6 +419,7 @@ export default function UserManagement() {
                             <option value="TECHNICIAN">🔧 Technicians</option>
                             <option value="FINANCE">💰 Finance</option>
                             <option value="CUSTOMER">👤 Customers</option>
+                            <option value="MANAGER">🤵 Manager</option>
                         </select>
                     </div>
                     
@@ -676,6 +728,7 @@ export default function UserManagement() {
                                 <option value="TECHNICIAN">🔧 Technician</option>
                                 <option value="FINANCE">💰 Finance</option>
                                 <option value="ADMIN">👑 Admin</option>
+                                <option value="MANAGER">🤵 Manager</option>
                             </select>
                         </div>
                         
@@ -980,10 +1033,12 @@ export default function UserManagement() {
                                             <td style={{ padding: "16px", textAlign: "center" }}>
                                                 <span style={{ 
                                                     background: user.role === "ADMIN" ? "#fef2f2" : 
+                                                              user.role === "MANAGER" ? "#fef3c7" :
                                                               user.role === "STAFF" ? "#eff6ff" : 
                                                               user.role === "TECHNICIAN" ? "#f3e8ff" :
                                                               user.role === "FINANCE" ? "#fef3c7" : "#f0fdf4",
                                                     color: user.role === "ADMIN" ? "#dc2626" : 
+                                                          user.role === "MANAGER" ? "#92400e" :
                                                           user.role === "STAFF" ? "#1d4ed8" : 
                                                           user.role === "TECHNICIAN" ? "#7c3aed" :
                                                           user.role === "FINANCE" ? "#92400e" : "#166534",
@@ -993,6 +1048,7 @@ export default function UserManagement() {
                                                     fontWeight: "600"
                                                 }}>
                                                     {user.role === "ADMIN" ? "👑" : 
+                                                     user.role === "MANAGER" ? "🤵" :
                                                      user.role === "STAFF" ? "👨‍💼" : 
                                                      user.role === "TECHNICIAN" ? "🔧" :
                                                      user.role === "FINANCE" ? "💰" : "👤"} {user.role}

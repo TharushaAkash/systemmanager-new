@@ -130,4 +130,6 @@ public class UserController {
         userRepository.deleteById(id);
         return ResponseEntity.ok().body("User deleted successfully");
     }
+
+
 }
