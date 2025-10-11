@@ -705,94 +705,181 @@ export default function HomePage({ onNavigate }) {
                 </div>
             </section>
 
-            {/* Testimonials Section */}
-            <section style={{ padding: '4rem 0', background: 'white' }}>
+            {/* Modern Testimonials Section with Carousel */}
+            <section style={{ 
+                padding: '6rem 0', 
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                position: 'relative'
+            }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                         <h2 style={{
-                            fontSize: '2.5rem',
-                            fontWeight: '700',
-                            color: '#1a1a1a',
-                            margin: '0 0 1rem 0'
+                            fontSize: '3rem',
+                            fontWeight: '800',
+                            background: 'linear-gradient(135deg, #1a73e8, #4285f4)',
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            margin: '0 0 1.5rem 0',
+                            animation: 'fadeInUp 0.8s ease-out'
                         }}>
                             What Our Customers Say
                         </h2>
                         <p style={{
-                            fontSize: '1.1rem',
-                            color: '#666',
-                            maxWidth: '600px',
+                            fontSize: '1.25rem',
+                            color: '#4a5568',
+                            maxWidth: '700px',
                             margin: '0 auto',
-                            lineHeight: '1.6'
+                            lineHeight: '1.7',
+                            animation: 'fadeInUp 0.8s ease-out 0.2s both'
                         }}>
                             Don't just take our word for it. Here's what our satisfied customers have to say about our services.
                         </p>
                     </div>
 
                     <div style={{
-                        display: 'flex',
-                        gap: '2rem',
-                        overflowX: 'auto',
-                        padding: '1rem 0',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none'
+                        position: 'relative',
+                        overflow: 'hidden',
+                        borderRadius: '24px',
+                        background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                        border: '1px solid rgba(26, 115, 232, 0.1)'
                     }}>
-                        {testimonials.map((testimonial) => (
-                            <div
-                                key={testimonial.id}
-                                style={{
-                                    minWidth: '350px',
-                                    background: '#f8fafc',
-                                    padding: '2rem',
-                                    borderRadius: '12px',
-                                    border: '1px solid #e2e8f0',
-                                    textAlign: 'center'
-                                }}
-                            >
-                                <div style={{
-                                    width: '80px',
-                                    height: '80px',
-                                    borderRadius: '50%',
-                                    background: `url(${testimonial.image}) center/cover`,
-                                    margin: '0 auto 1rem auto'
-                                }} />
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    gap: '0.25rem',
-                                    marginBottom: '1rem'
-                                }}>
-                                    {[...Array(testimonial.rating)].map((_, i) => (
-                                        <span key={i} style={{ color: '#ffc107', fontSize: '1.2rem' }}>★</span>
-                                    ))}
-                                </div>
-                                <p style={{
-                                    color: '#666',
-                                    fontSize: '1rem',
-                                    lineHeight: '1.6',
-                                    margin: '0 0 1rem 0',
-                                    fontStyle: 'italic'
-                                }}>
-                                    "{testimonial.content}"
-                                </p>
-                                <div>
-                                    <h4 style={{
-                                        color: '#1a1a1a',
-                                        margin: '0 0 0.25rem 0',
-                                        fontSize: '1.1rem',
-                                        fontWeight: '600'
+                        <div style={{
+                            display: 'flex',
+                            transform: `translateX(-${activeTestimonial * 100}%)`,
+                            transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                            width: `${testimonials.length * 100}%`
+                        }}>
+                            {testimonials.map((testimonial, index) => (
+                                <div
+                                    key={testimonial.id}
+                                    style={{
+                                        width: `${100 / testimonials.length}%`,
+                                        padding: '4rem 3rem',
+                                        textAlign: 'center',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minHeight: '400px'
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '120px',
+                                        height: '120px',
+                                        borderRadius: '50%',
+                                        background: `url(${testimonial.image}) center/cover`,
+                                        margin: '0 auto 2rem auto',
+                                        border: '4px solid rgba(26, 115, 232, 0.1)',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                                        animation: 'pulse 2s ease-in-out infinite'
+                                    }} />
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        marginBottom: '2rem'
                                     }}>
-                                        {testimonial.name}
-                                    </h4>
+                                        {[...Array(testimonial.rating)].map((_, i) => (
+                                            <span key={i} style={{ 
+                                                color: '#ffc107', 
+                                                fontSize: '1.5rem',
+                                                filter: 'drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3))'
+                                            }}>★</span>
+                                        ))}
+                                    </div>
                                     <p style={{
-                                        color: '#666',
-                                        margin: 0,
-                                        fontSize: '0.9rem'
+                                        color: '#4a5568',
+                                        fontSize: '1.25rem',
+                                        lineHeight: '1.7',
+                                        margin: '0 0 2rem 0',
+                                        fontStyle: 'italic',
+                                        maxWidth: '600px',
+                                        position: 'relative'
                                     }}>
-                                        {testimonial.role}
+                                        <span style={{
+                                            fontSize: '3rem',
+                                            color: '#1a73e8',
+                                            position: 'absolute',
+                                            top: '-1rem',
+                                            left: '-2rem',
+                                            opacity: 0.3
+                                        }}>"</span>
+                                        {testimonial.content}
+                                        <span style={{
+                                            fontSize: '3rem',
+                                            color: '#1a73e8',
+                                            position: 'absolute',
+                                            bottom: '-2rem',
+                                            right: '-1rem',
+                                            opacity: 0.3
+                                        }}>"</span>
                                     </p>
+                                    <div>
+                                        <h4 style={{
+                                            color: '#1a1a1a',
+                                            margin: '0 0 0.5rem 0',
+                                            fontSize: '1.5rem',
+                                            fontWeight: '700'
+                                        }}>
+                                            {testimonial.name}
+                                        </h4>
+                                        <p style={{
+                                            color: '#1a73e8',
+                                            margin: 0,
+                                            fontSize: '1.1rem',
+                                            fontWeight: '600'
+                                        }}>
+                                            {testimonial.role}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
+                        
+                        {/* Carousel Navigation */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '2rem',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            display: 'flex',
+                            gap: '1rem'
+                        }}>
+                            {testimonials.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setActiveTestimonial(index)}
+                                    style={{
+                                        width: '12px',
+                                        height: '12px',
+                                        borderRadius: '50%',
+                                        border: 'none',
+                                        background: index === activeTestimonial 
+                                            ? 'linear-gradient(135deg, #1a73e8, #4285f4)' 
+                                            : 'rgba(26, 115, 232, 0.3)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: index === activeTestimonial 
+                                            ? '0 4px 15px rgba(26, 115, 232, 0.4)' 
+                                            : 'none'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (index !== activeTestimonial) {
+                                            e.target.style.background = 'rgba(26, 115, 232, 0.6)';
+                                            e.target.style.transform = 'scale(1.2)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (index !== activeTestimonial) {
+                                            e.target.style.background = 'rgba(26, 115, 232, 0.3)';
+                                            e.target.style.transform = 'scale(1)';
+                                        }
+                                    }}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
