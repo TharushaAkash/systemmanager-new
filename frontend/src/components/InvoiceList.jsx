@@ -82,6 +82,50 @@ export default function InvoiceList({ onNavigate }) {
         setPage(0);
     };
 
+    const handleDeleteInvoice = async (invoiceId) => {
+        if (!window.confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/api/billing/invoices/${invoiceId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                let message = `Failed to delete invoice. Status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) message = errorData.message;
+                } catch {}
+                throw new Error(message);
+            }
+
+            // Refresh the invoice list
+            await loadInvoices();
+        } catch (err) {
+            console.error('Error deleting invoice:', err);
+            setErr(err.message);
+        }
+    };
+
+    const handleViewInvoice = (invoiceId) => {
+        // Open PDF in new tab
+        window.open(`${API_BASE}/api/billing/invoices/${invoiceId}/view`, '_blank');
+    };
+
+    const handleDownloadInvoice = (invoiceId) => {
+        // Download PDF
+        const link = document.createElement('a');
+        link.href = `${API_BASE}/api/billing/invoices/${invoiceId}/pdf`;
+        link.download = `invoice-${invoiceId}.pdf`;
+        link.click();
+    };
+
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-LK', {
             style: 'currency',
@@ -731,16 +775,16 @@ export default function InvoiceList({ onNavigate }) {
                                 </span>
                             </td>
                                         <td style={{ padding: "12px", textAlign: "center" }}>
-                                            <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
-                                <button
-                                    onClick={() => onNavigate && onNavigate(`invoice-detail-${invoice.id}`)}
+                                            <div style={{ display: "flex", gap: "4px", justifyContent: "center", flexWrap: "wrap" }}>
+                                                <button
+                                                    onClick={() => handleViewInvoice(invoice.id)}
                                                     style={{ 
-                                                        padding: "6px 12px", 
+                                                        padding: "6px 10px", 
                                                         background: "#3b82f6", 
                                                         color: "white", 
                                                         border: "none", 
                                                         borderRadius: "4px",
-                                                        fontSize: "0.75rem",
+                                                        fontSize: "0.7rem",
                                                         fontWeight: "500",
                                                         cursor: "pointer",
                                                         transition: "all 0.2s ease"
@@ -755,35 +799,57 @@ export default function InvoiceList({ onNavigate }) {
                                                     }}
                                                 >
                                                     👁️ View
-                                </button>
-                                {invoice.balance > 0 && (
-                                    <button
-                                        onClick={() => onNavigate && onNavigate(`payment-modal-${invoice.id}`)}
-                                                        style={{ 
-                                                            padding: "6px 12px", 
-                                                            background: "#10b981", 
-                                                            color: "white", 
-                                                            border: "none", 
-                                                            borderRadius: "4px",
-                                                            fontSize: "0.75rem",
-                                                            fontWeight: "500",
-                                                            cursor: "pointer",
-                                                            transition: "all 0.2s ease"
-                                                        }}
-                                                        onMouseOver={(e) => {
-                                                            e.target.style.background = "#059669";
-                                                            e.target.style.transform = "translateY(-1px)";
-                                                        }}
-                                                        onMouseOut={(e) => {
-                                                            e.target.style.background = "#10b981";
-                                                            e.target.style.transform = "translateY(0)";
-                                                        }}
-                                                    >
-                                                        💳 Pay
-                                    </button>
-                                )}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDownloadInvoice(invoice.id)}
+                                                    style={{ 
+                                                        padding: "6px 10px", 
+                                                        background: "#8b5cf6", 
+                                                        color: "white", 
+                                                        border: "none", 
+                                                        borderRadius: "4px",
+                                                        fontSize: "0.7rem",
+                                                        fontWeight: "500",
+                                                        cursor: "pointer",
+                                                        transition: "all 0.2s ease"
+                                                    }}
+                                                    onMouseOver={(e) => {
+                                                        e.target.style.background = "#7c3aed";
+                                                        e.target.style.transform = "translateY(-1px)";
+                                                    }}
+                                                    onMouseOut={(e) => {
+                                                        e.target.style.background = "#8b5cf6";
+                                                        e.target.style.transform = "translateY(0)";
+                                                    }}
+                                                >
+                                                    📥 PDF
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteInvoice(invoice.id)}
+                                                    style={{ 
+                                                        padding: "6px 10px", 
+                                                        background: "#ef4444", 
+                                                        color: "white", 
+                                                        border: "none", 
+                                                        borderRadius: "4px",
+                                                        fontSize: "0.7rem",
+                                                        fontWeight: "500",
+                                                        cursor: "pointer",
+                                                        transition: "all 0.2s ease"
+                                                    }}
+                                                    onMouseOver={(e) => {
+                                                        e.target.style.background = "#dc2626";
+                                                        e.target.style.transform = "translateY(-1px)";
+                                                    }}
+                                                    onMouseOut={(e) => {
+                                                        e.target.style.background = "#ef4444";
+                                                        e.target.style.transform = "translateY(0)";
+                                                    }}
+                                                >
+                                                    🗑️ Delete
+                                                </button>
                                             </div>
-                            </td>
+                                        </td>
                         </tr>
                     ))}
                     </tbody>

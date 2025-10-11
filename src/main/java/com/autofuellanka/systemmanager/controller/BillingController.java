@@ -3,14 +3,18 @@ package com.autofuellanka.systemmanager.controller;
 import com.autofuellanka.systemmanager.model.*;
 import com.autofuellanka.systemmanager.repository.*;
 import com.autofuellanka.systemmanager.service.BillingService;
+import com.autofuellanka.systemmanager.service.InvoicePdfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +33,9 @@ public class BillingController {
     @Autowired
     private BillingService billingService;
 
+    @Autowired
+    private InvoicePdfService invoicePdfService;
+
     // Invoice endpoints
 
     @GetMapping("/test")
@@ -42,31 +49,31 @@ public class BillingController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        
+
         try {
             System.out.println("🔍 INVOICE LIST DEBUG:");
             System.out.println("Page: " + page + ", Size: " + size);
             System.out.println("Sort: " + sortBy + " " + sortDir);
-            
+
             // Test basic repository access
             System.out.println("🔍 Testing repository count...");
             long count = invoiceRepository.count();
             System.out.println("✅ Repository count successful: " + count);
-            
+
             // Test simple list
             System.out.println("🔍 Testing simple list...");
             List<Invoice> allInvoices = invoiceRepository.findAll();
             System.out.println("✅ Simple list successful. Count: " + allInvoices.size());
-            
+
             // Test pagination
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+            Sort sort = sortDir.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            
+
             System.out.println("🔍 Calling paginated repository...");
             Page<Invoice> result = invoiceRepository.findAllByOrderByCreatedAtDesc(pageable);
             System.out.println("✅ Paginated call successful. Total elements: " + result.getTotalElements());
-            
+
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             System.out.println("❌ ERROR in getAllInvoices: " + e.getMessage());
@@ -114,6 +121,84 @@ public class BillingController {
             return ResponseEntity.ok(invoice);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/invoices/{id}")
+    public ResponseEntity<?> deleteInvoice(@PathVariable Long id) {
+        try {
+            Optional<Invoice> invoiceOpt = invoiceRepository.findById(id);
+            if (invoiceOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Invoice invoice = invoiceOpt.get();
+
+            // Check if invoice has payments
+            if (invoice.getPayments() != null && !invoice.getPayments().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body("Cannot delete invoice with existing payments. Please delete payments first.");
+            }
+
+            // Delete the invoice
+            invoiceRepository.deleteById(id);
+            return ResponseEntity.ok().body("Invoice deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error deleting invoice: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/invoices/{id}/pdf")
+    public ResponseEntity<byte[]> getInvoicePdf(@PathVariable Long id) {
+        try {
+            Optional<Invoice> invoiceOpt = invoiceRepository.findById(id);
+            if (invoiceOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Invoice invoice = invoiceOpt.get();
+            byte[] pdfBytes = invoicePdfService.generateInvoicePdf(invoice);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment",
+                "invoice-" + invoice.getInvoiceNumber() + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/invoices/{id}/view")
+    public ResponseEntity<byte[]> viewInvoicePdf(@PathVariable Long id) {
+        try {
+            Optional<Invoice> invoiceOpt = invoiceRepository.findById(id);
+            if (invoiceOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Invoice invoice = invoiceOpt.get();
+            byte[] pdfBytes = invoicePdfService.generateInvoicePdf(invoice);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("inline",
+                "invoice-" + invoice.getInvoiceNumber() + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
         }
     }
 
@@ -170,16 +255,16 @@ public class BillingController {
     @GetMapping("/summary")
     public ResponseEntity<BillingSummary> getBillingSummary() {
         BillingSummary summary = new BillingSummary();
-        
+
         summary.setTotalInvoices(invoiceRepository.count());
         summary.setUnpaidInvoices(invoiceRepository.findUnpaidInvoices().size());
         summary.setOverdueInvoices(invoiceRepository.findOverdueInvoices(LocalDateTime.now()).size());
         summary.setTotalOutstanding(invoiceRepository.getTotalOutstandingBalance());
-        
+
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime endOfMonth = LocalDateTime.now();
         summary.setMonthlyRevenue(invoiceRepository.getTotalRevenueByDateRange(startOfMonth, endOfMonth));
-        
+
         return ResponseEntity.ok(summary);
     }
 
