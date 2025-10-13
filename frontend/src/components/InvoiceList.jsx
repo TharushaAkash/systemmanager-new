@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import InvoicePDFGenerator from "./InvoicePDFGenerator";
 
 const API_BASE = "http://localhost:8080";
 
@@ -16,6 +17,9 @@ export default function InvoiceList({ onNavigate }) {
         status: "",
         search: ""
     });
+    const [showPDFGenerator, setShowPDFGenerator] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [customer, setCustomer] = useState(null);
 
     const loadInvoices = async () => {
         setLoading(true);
@@ -113,17 +117,40 @@ export default function InvoiceList({ onNavigate }) {
         }
     };
 
-    const handleViewInvoice = (invoiceId) => {
-        // Open PDF in new tab
-        window.open(`${API_BASE}/api/billing/invoices/${invoiceId}/view`, '_blank');
+
+    const handleGeneratePDF = async (invoice) => {
+        setSelectedInvoice(invoice);
+        
+        // Load customer data if available
+        if (invoice.customerId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/customers/${invoice.customerId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const customerData = await res.json();
+                    setCustomer(customerData);
+                }
+            } catch (e) {
+                console.error("Error loading customer:", e);
+            }
+        }
+        
+        setShowPDFGenerator(true);
     };
 
-    const handleDownloadInvoice = (invoiceId) => {
-        // Download PDF
-        const link = document.createElement('a');
-        link.href = `${API_BASE}/api/billing/invoices/${invoiceId}/pdf`;
-        link.download = `invoice-${invoiceId}.pdf`;
-        link.click();
+    const loadCustomer = async (customerId) => {
+        try {
+            const res = await fetch(`${API_BASE}/api/customers/${customerId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const customerData = await res.json();
+                setCustomer(customerData);
+            }
+        } catch (e) {
+            console.error("Error loading customer:", e);
+        }
     };
 
     const formatCurrency = (amount) => {
@@ -777,52 +804,28 @@ export default function InvoiceList({ onNavigate }) {
                                         <td style={{ padding: "12px", textAlign: "center" }}>
                                             <div style={{ display: "flex", gap: "4px", justifyContent: "center", flexWrap: "wrap" }}>
                                                 <button
-                                                    onClick={() => handleViewInvoice(invoice.id)}
+                                                    onClick={() => handleGeneratePDF(invoice)}
                                                     style={{ 
                                                         padding: "6px 10px", 
-                                                        background: "#3b82f6", 
+                                                        background: "#000000", 
                                                         color: "white", 
-                                                        border: "none", 
+                                                        border: "2px solid #000000", 
                                                         borderRadius: "4px",
                                                         fontSize: "0.7rem",
-                                                        fontWeight: "500",
+                                                        fontWeight: "bold",
                                                         cursor: "pointer",
                                                         transition: "all 0.2s ease"
                                                     }}
                                                     onMouseOver={(e) => {
-                                                        e.target.style.background = "#2563eb";
+                                                        e.target.style.background = "#333333";
                                                         e.target.style.transform = "translateY(-1px)";
                                                     }}
                                                     onMouseOut={(e) => {
-                                                        e.target.style.background = "#3b82f6";
+                                                        e.target.style.background = "#000000";
                                                         e.target.style.transform = "translateY(0)";
                                                     }}
                                                 >
-                                                    👁️ View
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDownloadInvoice(invoice.id)}
-                                                    style={{ 
-                                                        padding: "6px 10px", 
-                                                        background: "#8b5cf6", 
-                                                        color: "white", 
-                                                        border: "none", 
-                                                        borderRadius: "4px",
-                                                        fontSize: "0.7rem",
-                                                        fontWeight: "500",
-                                                        cursor: "pointer",
-                                                        transition: "all 0.2s ease"
-                                                    }}
-                                                    onMouseOver={(e) => {
-                                                        e.target.style.background = "#7c3aed";
-                                                        e.target.style.transform = "translateY(-1px)";
-                                                    }}
-                                                    onMouseOut={(e) => {
-                                                        e.target.style.background = "#8b5cf6";
-                                                        e.target.style.transform = "translateY(0)";
-                                                    }}
-                                                >
-                                                    📥 PDF
+                                                    🖨️ Generate PDF
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteInvoice(invoice.id)}
@@ -856,6 +859,26 @@ export default function InvoiceList({ onNavigate }) {
                 </table>
                     </div>
                 </div>
+            )}
+
+            {/* PDF Generator Modal */}
+            {showPDFGenerator && selectedInvoice && (
+                <InvoicePDFGenerator
+                    invoice={selectedInvoice}
+                    customer={customer}
+                    companyInfo={{
+                        name: "AutoFuel Lanka",
+                        address: "123 Main Street, Colombo 03",
+                        city: "Colombo, Sri Lanka",
+                        phone: "+94 11 234 5678",
+                        email: "info@autofuellanka.com"
+                    }}
+                    onClose={() => {
+                        setShowPDFGenerator(false);
+                        setSelectedInvoice(null);
+                        setCustomer(null);
+                    }}
+                />
             )}
         </div>
     );

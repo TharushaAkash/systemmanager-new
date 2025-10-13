@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = "http://localhost:8080";
 
 export default function OperationsDashboard({ onNavigate }) {
+    const { user } = useAuth();
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState("");
@@ -100,7 +102,7 @@ export default function OperationsDashboard({ onNavigate }) {
                         />
                     </div>
 
-                    {/* Staff Management Tools */}
+                    {/* Management Tools - Role-based */}
                     <div style={{ marginBottom: 40 }}>
                         <h2 style={{ 
                             color: "#1f2937", 
@@ -109,178 +111,131 @@ export default function OperationsDashboard({ onNavigate }) {
                             fontWeight: "600",
                             textAlign: "center"
                         }}>
-                            🛠️ Staff Management Tools
+                            {user?.role === "MANAGER" ? "🤵 Manager Management Tools" : "🛠️ Staff Management Tools"}
                         </h2>
                         <div style={{ 
                             display: "grid", 
                             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", 
-                            gap: "25px" 
+                            gap: "25px",
+                            justifyContent: "center"
                         }}>
-                            <div style={{
-                                background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-                                padding: "30px",
-                                borderRadius: "15px",
-                                border: "2px solid #e2e8f0",
-                                textAlign: "center",
-                                transition: "all 0.3s ease",
-                                cursor: "pointer"
-                            }}
-                            onClick={() => onNavigate && onNavigate("user-management")}
-                            onMouseOver={(e) => {
-                                e.target.style.transform = "translateY(-5px)";
-                                e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                                e.target.style.borderColor = "#3b82f6";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.borderColor = "#e2e8f0";
-                            }}>
-                                <div style={{ fontSize: "3rem", marginBottom: "15px" }}>👥</div>
-                                <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>User Management</h3>
-                                <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
-                                    Manage user accounts, roles, and permissions
-                                </p>
-                            </div>
+                            {user?.role === "MANAGER" ? (
+                                <>
+                                    <div style={{
+                                        background: "linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)",
+                                        padding: "30px",
+                                        borderRadius: "15px",
+                                        border: "2px solid #e9d5ff",
+                                        textAlign: "center",
+                                        transition: "all 0.3s ease",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => onNavigate && onNavigate("service-types")}
+                                    onMouseOver={(e) => {
+                                        e.target.style.transform = "translateY(-5px)";
+                                        e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
+                                        e.target.style.borderColor = "#a855f7";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.transform = "translateY(0)";
+                                        e.target.style.boxShadow = "none";
+                                        e.target.style.borderColor = "#e9d5ff";
+                                    }}>
+                                        <div style={{ fontSize: "3rem", marginBottom: "15px" }}>🔧</div>
+                                        <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Service Management</h3>
+                                        <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
+                                            Manage service types, pricing, and offerings
+                                        </p>
+                                    </div>
 
-                            <div style={{
-                                background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-                                padding: "30px",
-                                borderRadius: "15px",
-                                border: "2px solid #e0f2fe",
-                                textAlign: "center",
-                                transition: "all 0.3s ease",
-                                cursor: "pointer"
-                            }}
-                            onClick={() => onNavigate && onNavigate("customers")}
-                            onMouseOver={(e) => {
-                                e.target.style.transform = "translateY(-5px)";
-                                e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                                e.target.style.borderColor = "#0ea5e9";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.borderColor = "#e0f2fe";
-                            }}>
-                                <div style={{ fontSize: "3rem", marginBottom: "15px" }}>👤</div>
-                                <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Customer Management</h3>
-                                <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
-                                    View and manage customer accounts and information
-                                </p>
-                            </div>
+                                    <div style={{
+                                        background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+                                        padding: "30px",
+                                        borderRadius: "15px",
+                                        border: "2px solid #e0f2fe",
+                                        textAlign: "center",
+                                        transition: "all 0.3s ease",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => onNavigate && onNavigate("vehicles")}
+                                    onMouseOver={(e) => {
+                                        e.target.style.transform = "translateY(-5px)";
+                                        e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
+                                        e.target.style.borderColor = "#06b6d4";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.transform = "translateY(0)";
+                                        e.target.style.boxShadow = "none";
+                                        e.target.style.borderColor = "#e0f2fe";
+                                    }}>
+                                        <div style={{ fontSize: "3rem", marginBottom: "15px" }}>🚗</div>
+                                        <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Vehicle Management</h3>
+                                        <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
+                                            Manage vehicle types and specifications
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{
+                                        background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+                                        padding: "30px",
+                                        borderRadius: "15px",
+                                        border: "2px solid #dcfce7",
+                                        textAlign: "center",
+                                        transition: "all 0.3s ease",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => onNavigate && onNavigate("inventory")}
+                                    onMouseOver={(e) => {
+                                        e.target.style.transform = "translateY(-5px)";
+                                        e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
+                                        e.target.style.borderColor = "#22c55e";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.transform = "translateY(0)";
+                                        e.target.style.boxShadow = "none";
+                                        e.target.style.borderColor = "#dcfce7";
+                                    }}>
+                                        <div style={{ fontSize: "3rem", marginBottom: "15px" }}>📦</div>
+                                        <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Inventory Management</h3>
+                                        <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
+                                            Manage inventory items, stock levels, and reorder points
+                                        </p>
+                                    </div>
 
-                            <div style={{
-                                background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
-                                padding: "30px",
-                                borderRadius: "15px",
-                                border: "2px solid #dcfce7",
-                                textAlign: "center",
-                                transition: "all 0.3s ease",
-                                cursor: "pointer"
-                            }}
-                            onClick={() => onNavigate && onNavigate("inventory")}
-                            onMouseOver={(e) => {
-                                e.target.style.transform = "translateY(-5px)";
-                                e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                                e.target.style.borderColor = "#22c55e";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.borderColor = "#dcfce7";
-                            }}>
-                                <div style={{ fontSize: "3rem", marginBottom: "15px" }}>📦</div>
-                                <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Inventory Management</h3>
-                                <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
-                                    Manage inventory items, stock levels, and reorder points
-                                </p>
-                            </div>
-
-                            <div style={{
-                                background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-                                padding: "30px",
-                                borderRadius: "15px",
-                                border: "2px solid #fde68a",
-                                textAlign: "center",
-                                transition: "all 0.3s ease",
-                                cursor: "pointer"
-                            }}
-                            onClick={() => onNavigate && onNavigate("bookings")}
-                            onMouseOver={(e) => {
-                                e.target.style.transform = "translateY(-5px)";
-                                e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                                e.target.style.borderColor = "#f59e0b";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.borderColor = "#fde68a";
-                            }}>
-                                <div style={{ fontSize: "3rem", marginBottom: "15px" }}>📅</div>
-                                <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Booking Management</h3>
-                                <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
-                                    View and manage all customer bookings and appointments
-                                </p>
-                            </div>
-
-                            <div style={{
-                                background: "linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)",
-                                padding: "30px",
-                                borderRadius: "15px",
-                                border: "2px solid #e9d5ff",
-                                textAlign: "center",
-                                transition: "all 0.3s ease",
-                                cursor: "pointer"
-                            }}
-                            onClick={() => onNavigate && onNavigate("service-types")}
-                            onMouseOver={(e) => {
-                                e.target.style.transform = "translateY(-5px)";
-                                e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                                e.target.style.borderColor = "#a855f7";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.borderColor = "#e9d5ff";
-                            }}>
-                                <div style={{ fontSize: "3rem", marginBottom: "15px" }}>🔧</div>
-                                <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Service Management</h3>
-                                <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
-                                    Manage service types, pricing, and vehicle specifications
-                                </p>
-                            </div>
-
-                            <div style={{
-                                background: "linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)",
-                                padding: "30px",
-                                borderRadius: "15px",
-                                border: "2px solid #fecaca",
-                                textAlign: "center",
-                                transition: "all 0.3s ease",
-                                cursor: "pointer"
-                            }}
-                            onClick={() => onNavigate && onNavigate("vehicle-types")}
-                            onMouseOver={(e) => {
-                                e.target.style.transform = "translateY(-5px)";
-                                e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                                e.target.style.borderColor = "#ef4444";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.borderColor = "#fecaca";
-                            }}>
-                                <div style={{ fontSize: "3rem", marginBottom: "15px" }}>🚗</div>
-                                <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Vehicle Management</h3>
-                                <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
-                                    Manage vehicle types, specifications, and maintenance records
-                                </p>
-                            </div>
+                                    <div style={{
+                                        background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                                        padding: "30px",
+                                        borderRadius: "15px",
+                                        border: "2px solid #fde68a",
+                                        textAlign: "center",
+                                        transition: "all 0.3s ease",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => onNavigate && onNavigate("bookings")}
+                                    onMouseOver={(e) => {
+                                        e.target.style.transform = "translateY(-5px)";
+                                        e.target.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
+                                        e.target.style.borderColor = "#f59e0b";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.transform = "translateY(0)";
+                                        e.target.style.boxShadow = "none";
+                                        e.target.style.borderColor = "#fde68a";
+                                    }}>
+                                        <div style={{ fontSize: "3rem", marginBottom: "15px" }}>📅</div>
+                                        <h3 style={{ color: "#1f2937", margin: "0 0 10px 0", fontSize: "1.3rem" }}>Booking Management</h3>
+                                        <p style={{ color: "#6b7280", margin: "0", fontSize: "0.95rem" }}>
+                                            View and manage all customer bookings and appointments
+                                        </p>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
-                    {/* Reports Section */}
+                    {/* Reports Section - Role-based */}
                     <div>
                         <h2>Download Reports</h2>
                         <p style={{ color: "#6c757d", marginBottom: 20 }}>
@@ -290,43 +245,44 @@ export default function OperationsDashboard({ onNavigate }) {
                         <div style={{ 
                             display: "grid", 
                             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", 
-                            gap: 20 
+                            gap: 20,
+                            justifyContent: "center"
                         }}>
-                            <ReportCard 
-                                title="Inventory Report"
-                                description="Complete inventory items with stock levels and reorder status"
-                                icon="📦"
-                                onDownload={() => downloadReport("inventory")}
-                                color="#007bff"
-                            />
-                            <ReportCard 
-                                title="Stock Movements Report"
-                                description="All stock movements including receives, issues, and adjustments"
-                                icon="📊"
-                                onDownload={() => downloadReport("stock-movements")}
-                                color="#28a745"
-                            />
-                            <ReportCard 
-                                title="Vehicle Types Report"
-                                description="All vehicle types with specifications and details"
-                                icon="🚗"
-                                onDownload={() => downloadReport("vehicle-types")}
-                                color="#6f42c1"
-                            />
-                            <ReportCard 
-                                title="Users Report"
-                                description="All customer accounts with contact information"
-                                icon="👥"
-                                onDownload={() => downloadReport("users")}
-                                color="#17a2b8"
-                            />
-                            <ReportCard 
-                                title="Bookings Report"
-                                description="All bookings with customer and service details"
-                                icon="📅"
-                                onDownload={() => downloadReport("bookings")}
-                                color="#ffc107"
-                            />
+                            {user?.role === "MANAGER" ? (
+                                <>
+                                    <ReportCard 
+                                        title="Inventory Report"
+                                        description="Complete inventory items with stock levels and reorder status"
+                                        icon="📦"
+                                        onDownload={() => downloadReport("inventory")}
+                                        color="#007bff"
+                                    />
+                                    <ReportCard 
+                                        title="Vehicle Types Report"
+                                        description="All vehicle types with specifications and details"
+                                        icon="🚗"
+                                        onDownload={() => downloadReport("vehicle-types")}
+                                        color="#06b6d4"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <ReportCard 
+                                        title="Inventory Report"
+                                        description="Complete inventory items with stock levels and reorder status"
+                                        icon="📦"
+                                        onDownload={() => downloadReport("inventory")}
+                                        color="#007bff"
+                                    />
+                                    <ReportCard 
+                                        title="Bookings Report"
+                                        description="All bookings with customer and service details"
+                                        icon="📅"
+                                        onDownload={() => downloadReport("bookings")}
+                                        color="#ffc107"
+                                    />
+                                </>
+                            )}
                         </div>
                     </div>
                 </>

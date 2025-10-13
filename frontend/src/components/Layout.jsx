@@ -72,28 +72,37 @@ function Home({ onNavigate }) {
                         operations: ["Add Items", "View Inventory", "Update Stock", "Delete Items"]
                     },
                     {
-                        title: "Service Types",
-                        description: "Manage service offerings and pricing",
-                        icon: "🔧",
-                        color: "#a855f7",
-                        key: "service-types",
-                        operations: ["Create Services", "View Services", "Edit Services", "Delete Services"]
-                    },
-                    {
-                        title: "Vehicle Types",
-                        description: "Manage vehicle specifications and types",
-                        icon: "🚗",
-                        color: "#ef4444",
-                        key: "vehicle-types",
-                        operations: ["Add Types", "View Types", "Update Types", "Remove Types"]
-                    },
-                    {
                         title: "Booking Management",
                         description: "Handle customer bookings and appointments",
                         icon: "📅",
                         color: "#f59e0b",
                         key: "bookings",
                         operations: ["Create Bookings", "View Bookings", "Update Status", "Cancel Bookings"]
+                    }
+                ]
+            };
+        } else if (hasRole("MANAGER")) {
+            return {
+                title: "Manager Dashboard",
+                subtitle: "Service and vehicle management operations",
+                icon: "🤵",
+                color: "#8b5cf6",
+                crudSections: [
+                    {
+                        title: "Service Management",
+                        description: "Manage service types, pricing, and offerings",
+                        icon: "🔧",
+                        color: "#a855f7",
+                        key: "service-types",
+                        operations: ["Create Services", "View Services", "Edit Services", "Delete Services"]
+                    },
+                    {
+                        title: "Vehicle Management",
+                        description: "Manage vehicle types and specifications",
+                        icon: "🚗",
+                        color: "#06b6d4",
+                        key: "vehicles",
+                        operations: ["Add Vehicle Types", "View Vehicles", "Update Specs", "Remove Types"]
                     }
                 ]
             };
@@ -575,6 +584,7 @@ export default function Layout({ onNavigate }) {
             'CUSTOMER': ['home', 'my-vehicles', 'services', 'service-booking', 'payment-gateway', 'my-bookings', 'profile'],
             'TECHNICIAN': ['home', 'job-management', 'current-jobs', 'technicians', 'pending-jobs'],
             'STAFF': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard'],
+            'MANAGER': ['home', 'operations-dashboard', 'service-types', 'vehicles'],
             'FINANCE': ['home', 'invoices', 'invoice-detail', 'finance-ledger'],
             'ADMIN': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard', 'invoices', 'invoice-detail', 'finance-ledger']
         };
@@ -730,9 +740,7 @@ export default function Layout({ onNavigate }) {
                             { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" },
                             { key: "operations-dashboard", label: "Operations Dashboard", icon: "📊", color: "#3b82f6" },
                             { key: "inventory", label: "Inventory Management", icon: "📦", color: "#22c55e" },
-                            { key: "bookings", label: "Booking Management", icon: "📅", color: "#f59e0b" },
-                            { key: "service-types", label: "Service Management", icon: "🔧", color: "#a855f7" },
-                            { key: "vehicles", label: "Vehicle Management", icon: "🚗", color: "#06b6d4" }
+                            { key: "bookings", label: "Booking Management", icon: "📅", color: "#f59e0b" }
                         ]
                     }
                 ];
@@ -746,6 +754,18 @@ export default function Layout({ onNavigate }) {
                             { key: "current-jobs", label: "Current Jobs", icon: "📋", color: "#3b82f6" },
                             { key: "pending-jobs", label: "Pending Jobs", icon: "⏳", color: "#f59e0b" },
                             { key: "technicians", label: "Technicians", icon: "👨‍🔧", color: "#10b981" }
+                        ]
+                    }
+                ];
+            case 'MANAGER':
+                return [
+                    {
+                        title: "Management Operations",
+                        items: [
+                            { key: "home", label: "Dashboard", icon: "🏠", color: "#3b82f6" },
+                            { key: "operations-dashboard", label: "Operations Dashboard", icon: "📊", color: "#3b82f6" },
+                            { key: "service-types", label: "Service Management", icon: "🔧", color: "#a855f7" },
+                            { key: "vehicles", label: "Vehicle Management", icon: "🚗", color: "#06b6d4" }
                         ]
                     }
                 ];
@@ -1025,14 +1045,14 @@ export default function Layout({ onNavigate }) {
                         {/* Staff/Admin */}
                         {page === "user-management" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><UserManagement /></ProtectedRoute></div></section>}
                         {page === "customers" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Customers /></ProtectedRoute></div></section>}
-                        {page === "vehicles" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Vehicles /></ProtectedRoute></div></section>}
+                        {page === "vehicles" && <section className="section"><div className="container"><ProtectedRoute requiredRole={["STAFF", "MANAGER"]}><Vehicles /></ProtectedRoute></div></section>}
                         {page === "bookings" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><Bookings /></ProtectedRoute></div></section>}
-                        {page === "service-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><ServiceTypes /></ProtectedRoute></div></section>}
+                        {page === "service-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole={["STAFF", "MANAGER"]}><ServiceTypes /></ProtectedRoute></div></section>}
                         {page === "inventory" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><InventoryItems onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "inventory-new" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><NewInventoryItem onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "inventory-moves" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><StockMoves onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "vehicle-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><VehicleTypes /></ProtectedRoute></div></section>}
-                        {page === "operations-dashboard" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><OperationsDashboard onNavigate={navigateTo} /></ProtectedRoute></div></section>}
+                        {page === "operations-dashboard" && <section className="section"><div className="container"><ProtectedRoute requiredRole={["STAFF", "MANAGER"]}><OperationsDashboard onNavigate={navigateTo} /></ProtectedRoute></div></section>}
 
                         {/* Finance */}
                         {page === "invoices" && <section className="section"><div className="container"><ProtectedRoute requiredRole="FINANCE"><InvoiceList onNavigate={navigateTo} /></ProtectedRoute></div></section>}

@@ -86,6 +86,14 @@ export default function RoleBasedNavigation({ onNavigate, currentPage }) {
             );
         }
 
+        if (user?.role === "MANAGER") {
+            items.push(
+                { key: "operations-dashboard", label: "Operations Dashboard", roles: ["MANAGER"] },
+                { key: "service-types", label: "Service Management", roles: ["MANAGER"] },
+                { key: "vehicles", label: "Vehicle Management", roles: ["MANAGER"] }
+            );
+        }
+
         if (user?.role === "ADMIN") {
             items.push(
                 { key: "user-management", label: "User Management", roles: ["ADMIN"] },
