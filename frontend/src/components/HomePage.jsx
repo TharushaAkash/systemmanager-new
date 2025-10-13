@@ -25,7 +25,9 @@ export default function HomePage({ onNavigate }) {
             });
             if (response.ok) {
                 const feedback = await response.json();
-                setCustomerFeedback(feedback);
+                // Filter feedback to only show ratings >= 4
+                const filteredFeedback = feedback.filter(item => item.rating >= 4);
+                setCustomerFeedback(filteredFeedback);
             }
         } catch (error) {
             console.error('Error loading customer feedback:', error);
@@ -42,10 +44,12 @@ export default function HomePage({ onNavigate }) {
     // Auto-rotate testimonials
     useEffect(() => {
         const testimonialsToShow = customerFeedback.length > 0 ? customerFeedback : testimonials;
-        const interval = setInterval(() => {
-            setActiveTestimonial((prev) => (prev + 1) % testimonialsToShow.length);
-        }, 5000);
-        return () => clearInterval(interval);
+        if (testimonialsToShow.length > 1) {
+            const interval = setInterval(() => {
+                setActiveTestimonial((prev) => (prev + 1) % testimonialsToShow.length);
+            }, 5000);
+            return () => clearInterval(interval);
+        }
     }, [customerFeedback]);
 
     // Scroll effect for navigation
@@ -1033,6 +1037,22 @@ export default function HomePage({ onNavigate }) {
                                     Loading customer feedback...
                                 </div>
                             </div>
+                        ) : (customerFeedback.length === 0 && testimonials.length === 0) ? (
+                            <div style={{
+                                padding: '4rem 3rem',
+                                textAlign: 'center',
+                                minHeight: '400px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{
+                                    fontSize: '1.2rem',
+                                    color: '#6b7280'
+                                }}>
+                                    No feedback available yet.
+                                </div>
+                            </div>
                         ) : (
                             <div style={{
                                 display: 'flex',
@@ -1040,7 +1060,11 @@ export default function HomePage({ onNavigate }) {
                                 transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                                 width: `${Math.max(customerFeedback.length, testimonials.length) * 100}%`
                             }}>
-                                {(customerFeedback.length > 0 ? customerFeedback : testimonials).map((testimonial, index) => (
+                                {(customerFeedback.length > 0 ? customerFeedback : testimonials).map((testimonial, index) => {
+                                    // Ensure testimonial exists and has required properties
+                                    if (!testimonial) return null;
+                                    
+                                    return (
                                 <div
                                     key={testimonial.id}
                                     style={{
@@ -1120,7 +1144,11 @@ export default function HomePage({ onNavigate }) {
                                             fontSize: '1.5rem',
                                             fontWeight: '700'
                                         }}>
-                                            {customerFeedback.length > 0 ? testimonial.customerName : testimonial.name}
+                                            {customerFeedback.length > 0 
+                                                ? (testimonial.customerName && !testimonial.customerName.includes('null') 
+                                                    ? testimonial.customerName 
+                                                    : 'Anonymous Customer')
+                                                : testimonial.name}
                                         </h4>
                                         <p style={{
                                             color: '#1a73e8',
@@ -1132,20 +1160,22 @@ export default function HomePage({ onNavigate }) {
                                         </p>
                                     </div>
                                 </div>
-                            ))}
+                                    );
+                                })}
                             </div>
                         )}
                         
                         {/* Carousel Navigation */}
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '2rem',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            gap: '1rem'
-                        }}>
-                            {(customerFeedback.length > 0 ? customerFeedback : testimonials).map((_, index) => (
+                        {(customerFeedback.length > 0 || testimonials.length > 0) && (
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '2rem',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                display: 'flex',
+                                gap: '1rem'
+                            }}>
+                                {(customerFeedback.length > 0 ? customerFeedback : testimonials).map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setActiveTestimonial(index)}
@@ -1177,7 +1207,8 @@ export default function HomePage({ onNavigate }) {
                                     }}
                                 />
                             ))}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>

@@ -1086,7 +1086,7 @@ export default function CustomerMyBookings({ onNavigate }) {
                                                 padding: "8px",
                                                 borderRadius: "50%",
                                                 transition: "all 0.3s ease",
-                                                color: star <= feedbackForm.rating ? "#ffc107" : "#9ca3af",
+                                                color: star <= feedbackForm.rating ? "#ffc107" : "#d1d5db",
                                                 filter: star <= feedbackForm.rating ? "drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3))" : "none"
                                             }}
                                             onMouseOver={(e) => {
@@ -1095,12 +1095,12 @@ export default function CustomerMyBookings({ onNavigate }) {
                                                 e.target.style.filter = "drop-shadow(0 2px 8px rgba(255, 193, 7, 0.4))";
                                             }}
                                             onMouseOut={(e) => {
-                                                e.target.style.color = star <= feedbackForm.rating ? "#ffc107" : "#9ca3af";
+                                                e.target.style.color = star <= feedbackForm.rating ? "#ffc107" : "#d1d5db";
                                                 e.target.style.transform = "scale(1)";
                                                 e.target.style.filter = star <= feedbackForm.rating ? "drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3))" : "none";
                                             }}
                                         >
-                                            ⭐
+                                            ★
                                         </button>
                                     ))}
                                 </div>

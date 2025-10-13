@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = "http://localhost:8080";
@@ -26,6 +26,21 @@ export default function CustomerProfile() {
         confirmPassword: ""
     });
 
+    // Initialize form with user data when component mounts or user changes
+    useEffect(() => {
+        if (user) {
+            setProfileForm({
+                firstName: user.firstName || "",
+                lastName: user.lastName || "",
+                email: user.email || "",
+                phone: user.phone || "",
+                address: user.address || "",
+                city: user.city || "",
+                postalCode: user.postalCode || ""
+            });
+        }
+    }, [user]);
+
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -33,13 +48,23 @@ export default function CustomerProfile() {
         setSuccess("");
 
         try {
+            // Create update data excluding email (since it can't be changed)
+            const updateData = {
+                firstName: profileForm.firstName,
+                lastName: profileForm.lastName,
+                phone: profileForm.phone,
+                address: profileForm.address,
+                city: profileForm.city,
+                postalCode: profileForm.postalCode
+            };
+
             const response = await fetch(`${API_BASE}/api/users/${user.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(profileForm)
+                body: JSON.stringify(updateData)
             });
 
             if (!response.ok) {
@@ -148,7 +173,7 @@ export default function CustomerProfile() {
                 <h3 style={{ color: "#1a73e8", marginBottom: "20px", fontSize: "1.3rem" }}>
                     Personal Information
                 </h3>
-                
+
                 <form onSubmit={handleProfileUpdate}>
                     <div style={{
                         display: "grid",
@@ -200,22 +225,22 @@ export default function CustomerProfile() {
 
                         <div>
                             <label style={{ display: "block", fontWeight: "600", marginBottom: "8px", color: "#333" }}>
-                                Email
+                                Email <span style={{ color: "#6b7280", fontSize: "12px", fontWeight: "400" }}>(Cannot be changed)</span>
                             </label>
                             <input
                                 type="email"
                                 value={profileForm.email}
-                                onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                                readOnly
                                 style={{
                                     width: "100%",
                                     padding: "12px",
                                     border: "2px solid #e1e5e9",
                                     borderRadius: "8px",
                                     fontSize: "14px",
-                                    transition: "border-color 0.3s ease"
+                                    backgroundColor: "#f8f9fa",
+                                    color: "#6b7280",
+                                    cursor: "not-allowed"
                                 }}
-                                onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
-                                onBlur={(e) => e.target.style.borderColor = "#e1e5e9"}
                                 required
                             />
                         </div>

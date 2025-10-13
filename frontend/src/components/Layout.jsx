@@ -26,6 +26,7 @@ import CustomerProfile from "./CustomerProfile";
 import ServicesShowcase from "./ServicesShowcase";
 import ServiceCenterBooking from "./ServiceCenterBooking";
 import CustomerMyBookings from "./CustomerMyBookings";
+import CustomerDashboard from "./CustomerDashboard";
 import PaymentGateway from "./PaymentGateway";
 
 function Home({ onNavigate }) {
@@ -808,7 +809,7 @@ export default function Layout({ onNavigate }) {
                     </header>
 
                     <main style={{ flex: 1 }}>
-                        {page === "home" && <Home onNavigate={navigateTo} />}
+                        {page === "home" && <CustomerDashboard onNavigate={navigateTo} />}
                         
                         {/* Customer Pages */}
                         {page === "my-vehicles" && <section className="section"><div className="container"><MyVehicles /></div></section>}

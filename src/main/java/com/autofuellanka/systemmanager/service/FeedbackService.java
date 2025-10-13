@@ -165,7 +165,21 @@ public class FeedbackService {
         dto.setCreatedAt(feedback.getCreatedAt());
         
         // Add additional display information
-        dto.setCustomerName(feedback.getCustomer().getFirstName() + " " + feedback.getCustomer().getLastName());
+        String firstName = feedback.getCustomer().getFirstName();
+        String lastName = feedback.getCustomer().getLastName();
+        String fullName = feedback.getCustomer().getFullName();
+        
+        if (firstName != null && lastName != null && !firstName.trim().isEmpty() && !lastName.trim().isEmpty()) {
+            dto.setCustomerName(firstName + " " + lastName);
+        } else if (fullName != null && !fullName.trim().isEmpty()) {
+            dto.setCustomerName(fullName);
+        } else if (firstName != null && !firstName.trim().isEmpty()) {
+            dto.setCustomerName(firstName);
+        } else if (lastName != null && !lastName.trim().isEmpty()) {
+            dto.setCustomerName(lastName);
+        } else {
+            dto.setCustomerName("Anonymous Customer");
+        }
         dto.setCustomerEmail(feedback.getCustomer().getEmail());
         
         // Get service name from booking
