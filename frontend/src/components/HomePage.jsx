@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
+const API_BASE = "http://localhost:8080";
+
 export default function HomePage({ onNavigate }) {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, token } = useAuth();
     const [activeTestimonial, setActiveTestimonial] = useState(0);
     const [inquiryForm, setInquiryForm] = useState({
         name: '',
@@ -12,14 +14,39 @@ export default function HomePage({ onNavigate }) {
         message: ''
     });
     const [isScrolled, setIsScrolled] = useState(false);
+    const [customerFeedback, setCustomerFeedback] = useState([]);
+    const [feedbackLoading, setFeedbackLoading] = useState(true);
+
+    // Load customer feedback
+    const loadCustomerFeedback = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/api/feedback/recent`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const feedback = await response.json();
+                setCustomerFeedback(feedback);
+            }
+        } catch (error) {
+            console.error('Error loading customer feedback:', error);
+        } finally {
+            setFeedbackLoading(false);
+        }
+    };
+
+    // Load feedback on component mount
+    useEffect(() => {
+        loadCustomerFeedback();
+    }, []);
 
     // Auto-rotate testimonials
     useEffect(() => {
+        const testimonialsToShow = customerFeedback.length > 0 ? customerFeedback : testimonials;
         const interval = setInterval(() => {
-            setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+            setActiveTestimonial((prev) => (prev + 1) % testimonialsToShow.length);
         }, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [customerFeedback]);
 
     // Scroll effect for navigation
     useEffect(() => {
@@ -990,17 +1017,34 @@ export default function HomePage({ onNavigate }) {
                         boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
                         border: '1px solid rgba(26, 115, 232, 0.1)'
                     }}>
-                        <div style={{
-                            display: 'flex',
-                            transform: `translateX(-${activeTestimonial * 100}%)`,
-                            transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                            width: `${testimonials.length * 100}%`
-                        }}>
-                            {testimonials.map((testimonial, index) => (
+                        {feedbackLoading ? (
+                            <div style={{
+                                padding: '4rem 3rem',
+                                textAlign: 'center',
+                                minHeight: '400px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{
+                                    fontSize: '1.2rem',
+                                    color: '#6b7280'
+                                }}>
+                                    Loading customer feedback...
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'flex',
+                                transform: `translateX(-${activeTestimonial * 100}%)`,
+                                transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                                width: `${Math.max(customerFeedback.length, testimonials.length) * 100}%`
+                            }}>
+                                {(customerFeedback.length > 0 ? customerFeedback : testimonials).map((testimonial, index) => (
                                 <div
                                     key={testimonial.id}
                                     style={{
-                                        width: `${100 / testimonials.length}%`,
+                                        width: `${100 / Math.max(customerFeedback.length, testimonials.length)}%`,
                                         padding: '4rem 3rem',
                                         textAlign: 'center',
                                         display: 'flex',
@@ -1014,19 +1058,27 @@ export default function HomePage({ onNavigate }) {
                                         width: '120px',
                                         height: '120px',
                                         borderRadius: '50%',
-                                        background: `url(${testimonial.image}) center/cover`,
+                                        background: customerFeedback.length > 0 
+                                            ? 'linear-gradient(135deg, #1a73e8, #4285f4)' 
+                                            : `url(${testimonial.image}) center/cover`,
                                         margin: '0 auto 2rem auto',
                                         border: '4px solid rgba(26, 115, 232, 0.1)',
                                         boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
-                                        animation: 'pulse 2s ease-in-out infinite'
-                                    }} />
+                                        animation: 'pulse 2s ease-in-out infinite',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '3rem'
+                                    }}>
+                                        {customerFeedback.length > 0 ? '👤' : ''}
+                                    </div>
                                     <div style={{
                                         display: 'flex',
                                         justifyContent: 'center',
                                         gap: '0.5rem',
                                         marginBottom: '2rem'
                                     }}>
-                                        {[...Array(testimonial.rating)].map((_, i) => (
+                                        {[...Array(customerFeedback.length > 0 ? testimonial.rating : testimonial.rating)].map((_, i) => (
                                             <span key={i} style={{ 
                                                 color: '#ffc107', 
                                                 fontSize: '1.5rem',
@@ -1051,7 +1103,7 @@ export default function HomePage({ onNavigate }) {
                                             left: '-2rem',
                                             opacity: 0.3
                                         }}>"</span>
-                                        {testimonial.content}
+                                        {customerFeedback.length > 0 ? testimonial.comment : testimonial.content}
                                         <span style={{
                                             fontSize: '3rem',
                                             color: '#1a73e8',
@@ -1068,7 +1120,7 @@ export default function HomePage({ onNavigate }) {
                                             fontSize: '1.5rem',
                                             fontWeight: '700'
                                         }}>
-                                            {testimonial.name}
+                                            {customerFeedback.length > 0 ? testimonial.customerName : testimonial.name}
                                         </h4>
                                         <p style={{
                                             color: '#1a73e8',
@@ -1076,12 +1128,13 @@ export default function HomePage({ onNavigate }) {
                                             fontSize: '1.1rem',
                                             fontWeight: '600'
                                         }}>
-                                            {testimonial.role}
+                                            {customerFeedback.length > 0 ? 'Customer' : testimonial.role}
                                         </p>
                                     </div>
                                 </div>
                             ))}
-                        </div>
+                            </div>
+                        )}
                         
                         {/* Carousel Navigation */}
                         <div style={{
@@ -1092,7 +1145,7 @@ export default function HomePage({ onNavigate }) {
                             display: 'flex',
                             gap: '1rem'
                         }}>
-                            {testimonials.map((_, index) => (
+                            {(customerFeedback.length > 0 ? customerFeedback : testimonials).map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setActiveTestimonial(index)}

@@ -11,9 +11,11 @@ public class Feedback {
     private Long id;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
     @Min(1) @Max(5)

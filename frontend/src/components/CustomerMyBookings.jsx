@@ -13,6 +13,13 @@ export default function CustomerMyBookings({ onNavigate }) {
     const [success, setSuccess] = useState("");
     const [editingBooking, setEditingBooking] = useState(null);
     const [filterStatus, setFilterStatus] = useState("ALL");
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [feedbackBooking, setFeedbackBooking] = useState(null);
+    const [feedbackForm, setFeedbackForm] = useState({
+        rating: 0,
+        comment: ""
+    });
+    const [bookingFeedbacks, setBookingFeedbacks] = useState({}); // Store feedback for each booking
 
     const [editForm, setEditForm] = useState({
         vehicleId: "",
@@ -27,7 +34,6 @@ export default function CustomerMyBookings({ onNavigate }) {
     const loadData = async () => {
         setLoading(true);
         setError("");
-        console.log("Loading data for user:", user, "with token:", token ? "present" : "missing");
         try {
             const headers = { Authorization: `Bearer ${token}` };
             const requests = [
@@ -39,10 +45,10 @@ export default function CustomerMyBookings({ onNavigate }) {
 
             if (bookingsRes.ok) {
                 const bookingsData = await bookingsRes.json();
-                console.log("Bookings loaded:", bookingsData);
                 setBookings(bookingsData || []);
-            } else {
-                console.error("Failed to load bookings:", bookingsRes.status, await bookingsRes.text());
+                
+                // Load feedback for each completed booking
+                await loadBookingFeedbacks(bookingsData || []);
             }
 
             if (vehiclesRes.ok) {
@@ -62,13 +68,47 @@ export default function CustomerMyBookings({ onNavigate }) {
         }
     };
 
+    const loadBookingFeedbacks = async (bookings) => {
+        const completedBookings = bookings.filter(booking => booking.status === "COMPLETED");
+        const feedbackPromises = completedBookings.map(async (booking) => {
+            try {
+                const response = await fetch(`${API_BASE}/api/feedback/booking/${booking.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const feedback = await response.json();
+                    return { bookingId: booking.id, feedback };
+                } else if (response.status === 404) {
+                    // No feedback exists for this booking - this is normal
+                    return { bookingId: booking.id, feedback: null };
+                }
+            } catch (err) {
+                // Only log actual errors, not 404s
+                if (err.message && !err.message.includes('404')) {
+                    console.error(`Error loading feedback for booking ${booking.id}:`, err);
+                }
+            }
+            return { bookingId: booking.id, feedback: null };
+        });
+
+        const feedbackResults = await Promise.all(feedbackPromises);
+        const feedbackMap = {};
+        feedbackResults.forEach(({ bookingId, feedback }) => {
+            if (feedback) {
+                console.log(`Feedback found for booking ${bookingId}:`, feedback);
+                feedbackMap[bookingId] = feedback;
+            }
+        });
+        console.log("Final feedback map:", feedbackMap);
+        setBookingFeedbacks(feedbackMap);
+    };
+
     const handleEditBooking = (booking) => {
         if (booking.status === "CONFIRMED") {
             setError("Cannot edit confirmed bookings. Please contact support for changes.");
             return;
         }
 
-        console.log("Editing booking:", booking); // Debug log
         
         setEditingBooking(booking);
         
@@ -97,14 +137,6 @@ export default function CustomerMyBookings({ onNavigate }) {
             urgency: booking.urgency || "NORMAL"
         });
         
-        console.log("Form populated with:", {
-            vehicleId: booking.vehicleId ? booking.vehicleId.toString() : "",
-            locationId: booking.locationId ? booking.locationId.toString() : "",
-            preferredDate: dateValue,
-            preferredTime: timeValue,
-            description: booking.description || "",
-            urgency: booking.urgency || "NORMAL"
-        }); // Debug log
     };
 
     const handleUpdateBooking = async (e) => {
@@ -170,6 +202,90 @@ export default function CustomerMyBookings({ onNavigate }) {
         }
     };
 
+    const handleSubmitFeedback = async (booking) => {
+        // First, verify the booking is still completed
+        try {
+            const response = await fetch(`${API_BASE}/api/customers/${user.id}/bookings/${booking.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const currentBooking = await response.json();
+                if (currentBooking.status !== "COMPLETED") {
+                    setError("This booking is no longer in completed status. Feedback cannot be submitted.");
+                    return;
+                }
+            } else {
+                // If we can't verify, we'll proceed and let the backend handle it
+                console.error("Failed to verify booking status");
+            }
+        } catch (err) {
+            console.error("Error verifying booking status:", err);
+            // Proceed and let the backend handle it
+        }
+
+        // If booking is still completed, proceed with feedback
+        setFeedbackBooking(booking);
+        setFeedbackForm({ rating: 0, comment: "" });
+        setShowFeedbackModal(true);
+    };
+
+    const handleFeedbackSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+        setSuccess("");
+
+        // Ensure rating is a valid number between 1-5
+        const rating = parseInt(feedbackForm.rating, 10);
+        if (isNaN(rating) || rating < 1 || rating > 5) {
+            setError("Please select a valid rating between 1 and 5");
+            return;
+        }
+
+        try {
+            const feedbackData = {
+                customerId: user.id,
+                bookingId: feedbackBooking.id,
+                rating: rating,
+                comment: feedbackForm.comment
+            };
+            
+            console.log("Submitting feedback:", feedbackData);
+            
+            const response = await fetch(`${API_BASE}/api/feedback`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(feedbackData)
+            });
+
+            if (!response.ok) {
+                let errorMessage = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    const errorText = await response.text();
+                    errorMessage = errorText || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            setSuccess("Feedback submitted successfully! Thank you for your review.");
+            setShowFeedbackModal(false);
+            setFeedbackBooking(null);
+            setFeedbackForm({ rating: 0, comment: "" });
+            
+            // Refresh feedback data for this booking
+            await loadBookingFeedbacks(bookings);
+        } catch (e) {
+            setError(e.message);
+            // Keep the modal open if there's an error so the user can try again
+        }
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case "PENDING": return "#ffc107";
@@ -200,6 +316,34 @@ export default function CustomerMyBookings({ onNavigate }) {
     const getVehicleName = (vehicleId) => {
         const vehicle = vehicles.find(v => v.id === vehicleId);
         return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.licensePlate})` : `Vehicle #${vehicleId}`;
+    };
+
+    const renderStars = (rating) => {
+        console.log("Rendering stars for rating:", rating, "Type:", typeof rating);
+        return (
+            <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                        key={star}
+                        style={{
+                            fontSize: "1rem",
+                            color: star <= rating ? "#ffc107" : "#d1d5db",
+                            display: star <= rating ? "inline" : "none" // Only show stars up to the rating
+                        }}
+                    >
+                        ⭐
+                    </span>
+                ))}
+                <span style={{ 
+                    fontSize: "0.8rem", 
+                    color: "#6c757d", 
+                    marginLeft: "4px",
+                    fontWeight: "500"
+                }}>
+                    ({rating}/5)
+                </span>
+            </div>
+        );
     };
 
     const filteredBookings = filterStatus === "ALL"
@@ -419,6 +563,63 @@ export default function CustomerMyBookings({ onNavigate }) {
                                     </button>
                                 </div>
                             )}
+
+                            {booking.status === "COMPLETED" && (
+                                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                                    {bookingFeedbacks[booking.id] ? (
+                                        <div style={{ 
+                                            display: "flex", 
+                                            alignItems: "center", 
+                                            gap: "8px",
+                                            padding: "8px 12px",
+                                            background: "#f8f9fa",
+                                            borderRadius: "6px",
+                                            border: "1px solid #e9ecef"
+                                        }}>
+                                            <span style={{ fontSize: "13px", color: "#6c757d", fontWeight: "500" }}>
+                                                Your Rating:
+                                            </span>
+                                            {renderStars(bookingFeedbacks[booking.id].rating)}
+                                            <span style={{ 
+                                                fontSize: "12px", 
+                                                color: "#28a745", 
+                                                fontWeight: "600",
+                                                marginLeft: "4px"
+                                            }}>
+                                                ✓ Rated
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleSubmitFeedback(booking)}
+                                            style={{
+                                                padding: "8px 16px",
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                background: "#28a745",
+                                                color: "white",
+                                                cursor: "pointer",
+                                                fontSize: "13px",
+                                                fontWeight: "500",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "6px",
+                                                transition: "all 0.2s ease"
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.target.style.background = "#218838";
+                                                e.target.style.transform = "translateY(-1px)";
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.target.style.background = "#28a745";
+                                                e.target.style.transform = "translateY(0)";
+                                            }}
+                                        >
+                                            ⭐ Leave Feedback
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -447,31 +648,84 @@ export default function CustomerMyBookings({ onNavigate }) {
                         maxHeight: "80vh",
                         overflow: "auto"
                     }}>
-                        <h3 style={{ color: "#1a73e8", marginBottom: "20px" }}>
-                            Edit Booking #{editingBooking.id}
-                        </h3>
-                        
-                        {/* Debug info */}
                         <div style={{ 
-                            background: "#f0f0f0", 
-                            padding: "10px", 
-                            marginBottom: "20px", 
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            fontFamily: "monospace"
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "space-between", 
+                            marginBottom: "30px",
+                            paddingBottom: "15px",
+                            borderBottom: "2px solid #f0f0f0"
                         }}>
-                            <strong>Debug Info:</strong><br/>
-                            Form values: {JSON.stringify(editForm, null, 2)}<br/>
-                            Booking data: {JSON.stringify(editingBooking, null, 2)}
+                            <h3 style={{ 
+                                color: "#1a73e8", 
+                                margin: 0, 
+                                fontSize: "1.5rem", 
+                                fontWeight: "700",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px"
+                            }}>
+                                ✏️ Edit Booking #{editingBooking.id}
+                            </h3>
+                            <button
+                                onClick={() => setEditingBooking(null)}
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "1.5rem",
+                                    cursor: "pointer",
+                                    color: "#999",
+                                    padding: "5px",
+                                    borderRadius: "50%",
+                                    transition: "all 0.2s ease"
+                                }}
+                                onMouseOver={(e) => {
+                                    e.target.style.background = "#f5f5f5";
+                                    e.target.style.color = "#666";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.target.style.background = "none";
+                                    e.target.style.color = "#999";
+                                }}
+                            >
+                                ✕
+                            </button>
                         </div>
 
-                        <form onSubmit={handleUpdateBooking}>
-                            <div style={{ marginBottom: "20px" }}>
-                                <label style={{ display: "block", fontWeight: "600", marginBottom: "8px" }}>Vehicle</label>
+                        <form onSubmit={handleUpdateBooking} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                            {/* Vehicle Selection */}
+                            <div style={{ 
+                                background: "#f8f9fa", 
+                                padding: "20px", 
+                                borderRadius: "12px", 
+                                border: "1px solid #e9ecef" 
+                            }}>
+                                <label style={{ 
+                                    display: "flex", 
+                                    alignItems: "center", 
+                                    gap: "8px", 
+                                    fontWeight: "600", 
+                                    marginBottom: "12px", 
+                                    color: "#495057",
+                                    fontSize: "0.95rem"
+                                }}>
+                                    🚗 Vehicle
+                                </label>
                                 <select
                                     value={editForm.vehicleId}
                                     onChange={(e) => setEditForm({ ...editForm, vehicleId: e.target.value })}
-                                    style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                                    style={{ 
+                                        width: "100%", 
+                                        padding: "12px 16px", 
+                                        border: "2px solid #dee2e6", 
+                                        borderRadius: "8px", 
+                                        fontSize: "0.95rem",
+                                        backgroundColor: "white",
+                                        transition: "all 0.2s ease",
+                                        outline: "none"
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
+                                    onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
                                     required
                                 >
                                     <option value="">Select Vehicle</option>
@@ -483,12 +737,39 @@ export default function CustomerMyBookings({ onNavigate }) {
                                 </select>
                             </div>
 
-                            <div style={{ marginBottom: "20px" }}>
-                                <label style={{ display: "block", fontWeight: "600", marginBottom: "8px" }}>Location</label>
+                            {/* Location Selection */}
+                            <div style={{ 
+                                background: "#f8f9fa", 
+                                padding: "20px", 
+                                borderRadius: "12px", 
+                                border: "1px solid #e9ecef" 
+                            }}>
+                                <label style={{ 
+                                    display: "flex", 
+                                    alignItems: "center", 
+                                    gap: "8px", 
+                                    fontWeight: "600", 
+                                    marginBottom: "12px", 
+                                    color: "#495057",
+                                    fontSize: "0.95rem"
+                                }}>
+                                    📍 Location
+                                </label>
                                 <select
                                     value={editForm.locationId}
                                     onChange={(e) => setEditForm({ ...editForm, locationId: e.target.value })}
-                                    style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                                    style={{ 
+                                        width: "100%", 
+                                        padding: "12px 16px", 
+                                        border: "2px solid #dee2e6", 
+                                        borderRadius: "8px", 
+                                        fontSize: "0.95rem",
+                                        backgroundColor: "white",
+                                        transition: "all 0.2s ease",
+                                        outline: "none"
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
+                                    onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
                                     required
                                 >
                                     <option value="">Select Location</option>
@@ -500,25 +781,76 @@ export default function CustomerMyBookings({ onNavigate }) {
                                 </select>
                             </div>
 
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", marginBottom: "20px" }}>
+                            {/* Date and Time Selection */}
+                            <div style={{ 
+                                display: "grid", 
+                                gridTemplateColumns: "1fr 1fr", 
+                                gap: "20px",
+                                background: "#f8f9fa", 
+                                padding: "20px", 
+                                borderRadius: "12px", 
+                                border: "1px solid #e9ecef" 
+                            }}>
                                 <div>
-                                    <label style={{ display: "block", fontWeight: "600", marginBottom: "8px" }}>Date</label>
+                                    <label style={{ 
+                                        display: "flex", 
+                                        alignItems: "center", 
+                                        gap: "8px", 
+                                        fontWeight: "600", 
+                                        marginBottom: "12px", 
+                                        color: "#495057",
+                                        fontSize: "0.95rem"
+                                    }}>
+                                        📅 Date
+                                    </label>
                                     <input
                                         type="date"
                                         value={editForm.preferredDate}
                                         onChange={(e) => setEditForm({ ...editForm, preferredDate: e.target.value })}
                                         min={new Date().toISOString().split("T")[0]}
-                                        style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                                        style={{ 
+                                            width: "100%", 
+                                            padding: "12px 16px", 
+                                            border: "2px solid #dee2e6", 
+                                            borderRadius: "8px", 
+                                            fontSize: "0.95rem",
+                                            backgroundColor: "white",
+                                            transition: "all 0.2s ease",
+                                            outline: "none"
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
+                                        onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label style={{ display: "block", fontWeight: "600", marginBottom: "8px" }}>Time</label>
+                                    <label style={{ 
+                                        display: "flex", 
+                                        alignItems: "center", 
+                                        gap: "8px", 
+                                        fontWeight: "600", 
+                                        marginBottom: "12px", 
+                                        color: "#495057",
+                                        fontSize: "0.95rem"
+                                    }}>
+                                        🕐 Time
+                                    </label>
                                     <select
                                         value={editForm.preferredTime}
                                         onChange={(e) => setEditForm({ ...editForm, preferredTime: e.target.value })}
-                                        style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                                        style={{ 
+                                            width: "100%", 
+                                            padding: "12px 16px", 
+                                            border: "2px solid #dee2e6", 
+                                            borderRadius: "8px", 
+                                            fontSize: "0.95rem",
+                                            backgroundColor: "white",
+                                            transition: "all 0.2s ease",
+                                            outline: "none"
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
+                                        onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
                                         required
                                     >
                                         <option value="">Select Time</option>
@@ -529,29 +861,364 @@ export default function CustomerMyBookings({ onNavigate }) {
                                 </div>
                             </div>
 
-                            <div style={{ marginBottom: "20px" }}>
-                                <label style={{ display: "block", fontWeight: "600", marginBottom: "8px" }}>Description</label>
+                            {/* Description */}
+                            <div style={{ 
+                                background: "#f8f9fa", 
+                                padding: "20px", 
+                                borderRadius: "12px", 
+                                border: "1px solid #e9ecef" 
+                            }}>
+                                <label style={{ 
+                                    display: "flex", 
+                                    alignItems: "center", 
+                                    gap: "8px", 
+                                    fontWeight: "600", 
+                                    marginBottom: "12px", 
+                                    color: "#495057",
+                                    fontSize: "0.95rem"
+                                }}>
+                                    📝 Description
+                                </label>
                                 <textarea
                                     value={editForm.description}
                                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                                     rows={3}
-                                    style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", resize: "vertical" }}
+                                    placeholder="Add any special instructions or notes for your service..."
+                                    style={{ 
+                                        width: "100%", 
+                                        padding: "12px 16px", 
+                                        border: "2px solid #dee2e6", 
+                                        borderRadius: "8px", 
+                                        fontSize: "0.95rem",
+                                        backgroundColor: "white",
+                                        resize: "vertical",
+                                        transition: "all 0.2s ease",
+                                        outline: "none",
+                                        fontFamily: "inherit"
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
+                                    onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
                                 />
                             </div>
 
-                            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                            {/* Action Buttons */}
+                            <div style={{ 
+                                display: "flex", 
+                                gap: "12px", 
+                                justifyContent: "flex-end",
+                                paddingTop: "10px",
+                                borderTop: "1px solid #e9ecef"
+                            }}>
                                 <button
                                     type="button"
                                     onClick={() => setEditingBooking(null)}
-                                    style={{ padding: "10px 20px", border: "1px solid #ccc", borderRadius: "6px", background: "white", cursor: "pointer" }}
+                                    style={{ 
+                                        padding: "12px 24px", 
+                                        border: "2px solid #dee2e6", 
+                                        borderRadius: "8px", 
+                                        background: "white", 
+                                        cursor: "pointer",
+                                        fontSize: "0.95rem",
+                                        fontWeight: "500",
+                                        color: "#6c757d",
+                                        transition: "all 0.2s ease"
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.target.style.borderColor = "#adb5bd";
+                                        e.target.style.color = "#495057";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.borderColor = "#dee2e6";
+                                        e.target.style.color = "#6c757d";
+                                    }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    style={{ padding: "10px 20px", borderRadius: "6px", backgroundColor: "#1a73e8", color: "white", border: "none", cursor: "pointer" }}
+                                    style={{ 
+                                        padding: "12px 24px", 
+                                        borderRadius: "8px", 
+                                        backgroundColor: "#1a73e8", 
+                                        color: "white", 
+                                        border: "none", 
+                                        cursor: "pointer",
+                                        fontSize: "0.95rem",
+                                        fontWeight: "600",
+                                        transition: "all 0.2s ease",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px"
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.target.style.backgroundColor = "#1557b0";
+                                        e.target.style.transform = "translateY(-1px)";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.backgroundColor = "#1a73e8";
+                                        e.target.style.transform = "translateY(0)";
+                                    }}
                                 >
-                                    Update Booking
+                                    💾 Update Booking
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Feedback Modal */}
+            {showFeedbackModal && feedbackBooking && (
+                <div style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0,0,0,0.5)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        background: "white",
+                        borderRadius: "16px",
+                        padding: "30px",
+                        maxWidth: "500px",
+                        width: "90%",
+                        maxHeight: "80vh",
+                        overflow: "auto",
+                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                    }}>
+                        <div style={{ 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "space-between", 
+                            marginBottom: "30px",
+                            paddingBottom: "15px",
+                            borderBottom: "2px solid #f0f0f0"
+                        }}>
+                            <h3 style={{ 
+                                color: "#1a73e8", 
+                                margin: 0, 
+                                fontSize: "1.5rem", 
+                                fontWeight: "700",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px"
+                            }}>
+                                ⭐ Leave Feedback
+                            </h3>
+                            <button
+                                onClick={() => setShowFeedbackModal(false)}
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "1.5rem",
+                                    cursor: "pointer",
+                                    color: "#999",
+                                    padding: "5px",
+                                    borderRadius: "50%",
+                                    transition: "all 0.2s ease"
+                                }}
+                                onMouseOver={(e) => {
+                                    e.target.style.background = "#f5f5f5";
+                                    e.target.style.color = "#666";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.target.style.background = "none";
+                                    e.target.style.color = "#999";
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div style={{
+                            background: "#f8f9fa",
+                            padding: "20px",
+                            borderRadius: "12px",
+                            marginBottom: "20px",
+                            border: "1px solid #e9ecef"
+                        }}>
+                            <h4 style={{ margin: "0 0 10px 0", color: "#495057", fontSize: "1rem" }}>
+                                Booking #{feedbackBooking.id}
+                            </h4>
+                            <p style={{ margin: "0", color: "#6c757d", fontSize: "0.9rem" }}>
+                                {feedbackBooking.serviceName || feedbackBooking.serviceType || "Service Appointment"}
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleFeedbackSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                            {/* Rating Section */}
+                            <div style={{ 
+                                background: "#f8f9fa", 
+                                padding: "20px", 
+                                borderRadius: "12px", 
+                                border: "1px solid #e9ecef" 
+                            }}>
+                                <label style={{ 
+                                    display: "block", 
+                                    fontWeight: "600", 
+                                    marginBottom: "15px", 
+                                    color: "#495057",
+                                    fontSize: "1rem"
+                                }}>
+                                    How would you rate this service? *
+                                </label>
+                                <div style={{ 
+                                    display: "flex", 
+                                    gap: "8px", 
+                                    justifyContent: "center",
+                                    flexWrap: "wrap"
+                                }}>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setFeedbackForm({ ...feedbackForm, rating: star })}
+                                            style={{
+                                                background: "none",
+                                                border: "none",
+                                                fontSize: "2.5rem",
+                                                cursor: "pointer",
+                                                padding: "8px",
+                                                borderRadius: "50%",
+                                                transition: "all 0.3s ease",
+                                                color: star <= feedbackForm.rating ? "#ffc107" : "#9ca3af",
+                                                filter: star <= feedbackForm.rating ? "drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3))" : "none"
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.target.style.color = "#ffc107";
+                                                e.target.style.transform = "scale(1.15)";
+                                                e.target.style.filter = "drop-shadow(0 2px 8px rgba(255, 193, 7, 0.4))";
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.target.style.color = star <= feedbackForm.rating ? "#ffc107" : "#9ca3af";
+                                                e.target.style.transform = "scale(1)";
+                                                e.target.style.filter = star <= feedbackForm.rating ? "drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3))" : "none";
+                                            }}
+                                        >
+                                            ⭐
+                                        </button>
+                                    ))}
+                                </div>
+                                <div style={{ 
+                                    textAlign: "center", 
+                                    marginTop: "10px", 
+                                    color: "#6c757d", 
+                                    fontSize: "0.9rem" 
+                                }}>
+                                    {feedbackForm.rating > 0 && (
+                                        <span>
+                                            {feedbackForm.rating === 1 && "Poor"}
+                                            {feedbackForm.rating === 2 && "Fair"}
+                                            {feedbackForm.rating === 3 && "Good"}
+                                            {feedbackForm.rating === 4 && "Very Good"}
+                                            {feedbackForm.rating === 5 && "Excellent"}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Comment Section */}
+                            <div style={{ 
+                                background: "#f8f9fa", 
+                                padding: "20px", 
+                                borderRadius: "12px", 
+                                border: "1px solid #e9ecef" 
+                            }}>
+                                <label style={{ 
+                                    display: "block", 
+                                    fontWeight: "600", 
+                                    marginBottom: "12px", 
+                                    color: "#495057",
+                                    fontSize: "0.95rem"
+                                }}>
+                                    📝 Additional Comments (Optional)
+                                </label>
+                                <textarea
+                                    value={feedbackForm.comment}
+                                    onChange={(e) => setFeedbackForm({ ...feedbackForm, comment: e.target.value })}
+                                    rows={4}
+                                    placeholder="Tell us about your experience with this service..."
+                                    style={{ 
+                                        width: "100%", 
+                                        padding: "12px 16px", 
+                                        border: "2px solid #dee2e6", 
+                                        borderRadius: "8px", 
+                                        fontSize: "0.95rem",
+                                        backgroundColor: "white",
+                                        resize: "vertical",
+                                        transition: "all 0.2s ease",
+                                        outline: "none",
+                                        fontFamily: "inherit"
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = "#1a73e8"}
+                                    onBlur={(e) => e.target.style.borderColor = "#dee2e6"}
+                                />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div style={{ 
+                                display: "flex", 
+                                gap: "12px", 
+                                justifyContent: "flex-end",
+                                paddingTop: "10px",
+                                borderTop: "1px solid #e9ecef"
+                            }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowFeedbackModal(false)}
+                                    style={{ 
+                                        padding: "12px 24px", 
+                                        border: "2px solid #dee2e6", 
+                                        borderRadius: "8px", 
+                                        background: "white", 
+                                        cursor: "pointer",
+                                        fontSize: "0.95rem",
+                                        fontWeight: "500",
+                                        color: "#6c757d",
+                                        transition: "all 0.2s ease"
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.target.style.borderColor = "#adb5bd";
+                                        e.target.style.color = "#495057";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.borderColor = "#dee2e6";
+                                        e.target.style.color = "#6c757d";
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{ 
+                                        padding: "12px 24px", 
+                                        borderRadius: "8px", 
+                                        backgroundColor: "#28a745", 
+                                        color: "white", 
+                                        border: "none", 
+                                        cursor: "pointer",
+                                        fontSize: "0.95rem",
+                                        fontWeight: "600",
+                                        transition: "all 0.2s ease",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px"
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.target.style.backgroundColor = "#218838";
+                                        e.target.style.transform = "translateY(-1px)";
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.target.style.backgroundColor = "#28a745";
+                                        e.target.style.transform = "translateY(0)";
+                                    }}
+                                >
+                                    💾 Submit Feedback
                                 </button>
                             </div>
                         </form>
