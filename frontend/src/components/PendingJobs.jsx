@@ -8,6 +8,7 @@ export default function PendingJobs() {
     const [bookings, setBookings] = useState([]);
     const [jobs, setJobs] = useState([]);
     const [technicians, setTechnicians] = useState([]);
+    const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [assigningJob, setAssigningJob] = useState(null);
@@ -20,24 +21,28 @@ export default function PendingJobs() {
             const requests = [
                 fetch(`${API_BASE}/api/bookings`, { headers }),
                 fetch(`${API_BASE}/api/jobs`, { headers }),
-                fetch(`${API_BASE}/api/users`, { headers })
+                fetch(`${API_BASE}/api/users`, { headers }),
+                fetch(`${API_BASE}/api/customers`, { headers })
             ];
 
-            const [bookingsRes, jobsRes, usersRes] = await Promise.all(requests);
+            const [bookingsRes, jobsRes, usersRes, customersRes] = await Promise.all(requests);
             
             if (!bookingsRes.ok) throw new Error(`Bookings fetch failed: ${bookingsRes.status}`);
             if (!jobsRes.ok) throw new Error(`Jobs fetch failed: ${jobsRes.status}`);
             if (!usersRes.ok) throw new Error(`Users fetch failed: ${usersRes.status}`);
+            if (!customersRes.ok) throw new Error(`Customers fetch failed: ${customersRes.status}`);
 
-            const [bookingsData, jobsData, usersData] = await Promise.all([
+            const [bookingsData, jobsData, usersData, customersData] = await Promise.all([
                 bookingsRes.json(),
                 jobsRes.json(),
-                usersRes.json()
+                usersRes.json(),
+                customersRes.json()
             ]);
 
             setBookings(bookingsData);
             setJobs(jobsData);
             setTechnicians(usersData.filter(u => u.role === 'TECHNICIAN' || u.role === 'STAFF'));
+            setCustomers(customersData);
         } catch (e) {
             setError(e.message);
         } finally {
@@ -76,9 +81,9 @@ export default function PendingJobs() {
         }
     };
 
-    // Get bookings that are CONFIRMED or COMPLETED and don't have jobs assigned yet
+    // Get bookings that are COMPLETED by STAFF and don't have jobs assigned yet
     const pendingBookings = bookings.filter(booking => 
-        (booking.status === 'CONFIRMED' || booking.status === 'COMPLETED') && 
+        booking.status === 'COMPLETED' && 
         !jobs.some(job => job.bookingId === booking.id)
     );
 
@@ -108,6 +113,11 @@ export default function PendingJobs() {
                 ['QUEUED', 'IN_PROGRESS', 'BLOCKED'].includes(job.status)
             )
         );
+    };
+
+    const getCustomerName = (customerId) => {
+        const customer = customers.find(c => c.id === customerId);
+        return customer ? customer.fullName : null;
     };
 
     useEffect(() => {
@@ -176,9 +186,9 @@ export default function PendingJobs() {
                     boxShadow: "0 4px 15px rgba(40, 167, 69, 0.3)"
                 }}>
                     <div style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "5px" }}>
-                        {bookings.filter(b => b.status === 'CONFIRMED' || b.status === 'COMPLETED').length}
+                        {bookings.filter(b => b.status === 'COMPLETED').length}
                     </div>
-                    <div style={{ fontSize: "16px", opacity: 0.9 }}>Confirmed & Completed</div>
+                    <div style={{ fontSize: "16px", opacity: 0.9 }}>Completed by Staff</div>
                 </div>
 
                 <div style={{
@@ -222,9 +232,9 @@ export default function PendingJobs() {
                 }}>
                     <div style={{ fontSize: "48px", marginBottom: "15px" }}>🎉</div>
                     <h3 style={{ color: "#28a745", marginBottom: "10px" }}>All Caught Up!</h3>
-                    <p>No confirmed or completed bookings waiting for job assignment.</p>
+                    <p>No completed bookings waiting for job assignment.</p>
                     <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
-                        Only bookings with "CONFIRMED" or "COMPLETED" status appear here.
+                        Only bookings with "COMPLETED" status (marked by STAFF) appear here.
                     </p>
                 </div>
             ) : (
@@ -297,7 +307,7 @@ export default function PendingJobs() {
                                 <div style={{ marginBottom: "8px" }}>
                                     <strong style={{ color: "#666" }}>Customer:</strong>
                                     <div style={{ marginTop: "2px" }}>
-                                        {booking.customerEmail || "Not specified"}
+                                        {getCustomerName(booking.customerId) || "Not specified"}
                                     </div>
                                 </div>
                                 

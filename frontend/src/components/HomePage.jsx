@@ -113,21 +113,15 @@ export default function HomePage({ onNavigate }) {
 
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
-            {/* Modern Navigation Bar with Glassmorphism */}
+            {/* Automotive Service Navigation Bar */}
             <nav style={{
-                background: isScrolled 
-                    ? 'rgba(26, 115, 232, 0.95)' 
-                    : 'linear-gradient(135deg, #1a73e8, #4285f4)',
-                backdropFilter: 'blur(20px)',
+                background: 'white',
                 padding: '1rem 0',
                 position: 'sticky',
                 top: 0,
                 zIndex: 1000,
-                boxShadow: isScrolled 
-                    ? '0 8px 32px rgba(26, 115, 232, 0.3)' 
-                    : '0 2px 20px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease'
             }}>
                 <div style={{
                     maxWidth: '1200px',
@@ -137,570 +131,824 @@ export default function HomePage({ onNavigate }) {
                     justifyContent: 'space-between',
                     alignItems: 'center'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Logo */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ 
-                            fontSize: '2rem',
-                            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                            animation: 'float 3s ease-in-out infinite'
-                        }}>⛽</div>
+                            fontSize: '1.5rem',
+                            color: '#333'
+                        }}>⚙️</div>
                         <h1 style={{ 
-                            color: 'white', 
+                            color: '#333', 
                             margin: 0, 
                             fontSize: '1.5rem', 
                             fontWeight: '700',
-                            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                            letterSpacing: '0.5px'
                         }}>
                             AutoFuel Lanka
                         </h1>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <button
-                            onClick={() => document.getElementById('inquiries').scrollIntoView({ behavior: 'smooth' })}
+
+                    {/* Navigation Links */}
+                    <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                        <button 
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                             style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: '2px solid rgba(255, 255, 255, 0.3)',
-                                color: 'white',
-                                padding: '0.75rem 1.5rem',
-                                borderRadius: '12px',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                backdropFilter: 'blur(10px)',
-                                fontWeight: '600'
+                                color: '#2563eb',
+                                textDecoration: 'none',
+                                fontWeight: '600',
+                                fontSize: '0.9rem',
+                                borderBottom: '2px solid #2563eb',
+                                paddingBottom: '0.25rem',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
                             }}
-                            onMouseEnter={(e) => {
-                                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-                                e.target.style.transform = 'translateY(-2px)';
-                                e.target.style.boxShadow = '0 8px 25px rgba(255, 255, 255, 0.2)';
+                        >HOME</button>
+                        <button 
+                            onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
+                            style={{
+                                color: '#333',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                                fontSize: '0.9rem',
+                                transition: 'color 0.3s ease',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
                             }}
-                            onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                                e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = 'none';
+                            onMouseEnter={(e) => e.target.style.color = '#2563eb'}
+                            onMouseLeave={(e) => e.target.style.color = '#333'}
+                        >SERVICES</button>
+                        <button 
+                            onClick={() => document.getElementById('about').scrollIntoView({ behavior: 'smooth' })}
+                            style={{
+                                color: '#333',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                                fontSize: '0.9rem',
+                                transition: 'color 0.3s ease',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
                             }}
-                        >
-                            Inquiries
-                        </button>
+                            onMouseEnter={(e) => e.target.style.color = '#2563eb'}
+                            onMouseLeave={(e) => e.target.style.color = '#333'}
+                        >ABOUT</button>
+                        <button 
+                            onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
+                            style={{
+                                color: '#333',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                                fontSize: '0.9rem',
+                                transition: 'color 0.3s ease',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => e.target.style.color = '#2563eb'}
+                            onMouseLeave={(e) => e.target.style.color = '#333'}
+                        >CONTACT</button>
+                    </div>
+
+                    {/* Right Side Button */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <button
                             onClick={() => onNavigate('login')}
                             style={{
-                                background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
+                                background: '#2563eb',
+                                color: 'white',
                                 border: 'none',
-                                color: '#1a73e8',
                                 padding: '0.75rem 1.5rem',
-                                borderRadius: '12px',
+                                borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontWeight: '700',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                                fontWeight: '600',
+                                fontSize: '0.9rem',
+                                transition: 'all 0.3s ease'
                             }}
                             onMouseEnter={(e) => {
-                                e.target.style.transform = 'translateY(-3px)';
-                                e.target.style.boxShadow = '0 12px 30px rgba(26, 115, 232, 0.3)';
-                                e.target.style.background = 'linear-gradient(135deg, #ffffff, #e2e8f0)';
+                                e.target.style.background = '#1d4ed8';
+                                e.target.style.transform = 'translateY(-1px)';
                             }}
                             onMouseLeave={(e) => {
+                                e.target.style.background = '#2563eb';
                                 e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-                                e.target.style.background = 'linear-gradient(135deg, #ffffff, #f8fafc)';
                             }}
                         >
-                            Login
+                            LOGIN
+                        </button>
+                        <button
+                            onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
+                            style={{
+                                background: 'transparent',
+                                color: '#2563eb',
+                                border: '2px solid #2563eb',
+                                padding: '0.75rem 1.5rem',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                fontSize: '0.9rem',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = '#2563eb';
+                                e.target.style.color = 'white';
+                                e.target.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = '#2563eb';
+                                e.target.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            GET A QUOTE
                         </button>
                     </div>
                 </div>
             </nav>
 
-            {/* Modern Hero Section with Animated Background */}
+            {/* Hero Section with Vehicle Background */}
             <section style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #1a73e8 100%)',
-                padding: '6rem 0',
+                background: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&h=1080&fit=crop') center/cover`,
+                padding: '8rem 0',
                 color: 'white',
-                textAlign: 'center',
                 position: 'relative',
-                overflow: 'hidden'
+                minHeight: '70vh',
+                display: 'flex',
+                alignItems: 'center'
             }}>
-                {/* Animated Background Elements */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-50%',
-                    left: '-50%',
-                    width: '200%',
-                    height: '200%',
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)',
-                    backgroundSize: '50px 50px',
-                    animation: 'float 20s linear infinite',
-                    opacity: 0.3
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    top: '20%',
-                    right: '-10%',
-                    width: '300px',
-                    height: '300px',
-                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)',
-                    borderRadius: '50%',
-                    animation: 'pulse 4s ease-in-out infinite'
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    bottom: '10%',
-                    left: '-5%',
-                    width: '200px',
-                    height: '200px',
-                    background: 'linear-gradient(45deg, rgba(255,255,255,0.05), transparent)',
-                    borderRadius: '50%',
-                    animation: 'float 6s ease-in-out infinite reverse'
-                }} />
-                
                 <div style={{ 
                     maxWidth: '1200px', 
                     margin: '0 auto', 
                     padding: '0 2rem',
-                    position: 'relative',
-                    zIndex: 2
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%'
                 }}>
+                    <div style={{ flex: '1', maxWidth: '600px' }}>
+                        <div style={{
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            letterSpacing: '2px',
+                            marginBottom: '1rem',
+                            color: '#f3f4f6'
+                        }}>
+                            BEST AUTO SERVICES
+                        </div>
                     <h1 style={{
-                        fontSize: '4rem',
+                            fontSize: '3.5rem',
                         fontWeight: '800',
-                        margin: '0 0 1.5rem 0',
+                            margin: '0 0 2rem 0',
                         lineHeight: '1.1',
-                        background: 'linear-gradient(45deg, #ffffff, #e2e8f0)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        textShadow: '0 4px 8px rgba(0,0,0,0.3)',
-                        animation: 'fadeInUp 1s ease-out'
-                    }}>
-                        Welcome to AutoFuel Lanka
+                            textShadow: '0 4px 8px rgba(0,0,0,0.5)'
+                        }}>
+                            Innovative Solutions<br />For Automobile
                     </h1>
-                    <p style={{
-                        fontSize: '1.375rem',
-                        margin: '0 auto 3rem auto',
-                        opacity: 0.95,
-                        maxWidth: '700px',
-                        lineHeight: '1.6',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                        animation: 'fadeInUp 1s ease-out 0.2s both'
-                    }}>
-                        Your trusted partner for premium automotive services. 
-                        From fuel station management to comprehensive vehicle maintenance, 
-                        we deliver excellence in every service.
-                    </p>
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '1.5rem', 
-                        justifyContent: 'center', 
-                        flexWrap: 'wrap',
-                        animation: 'fadeInUp 1s ease-out 0.4s both'
-                    }}>
                         <button
                             onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
                             style={{
-                                background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-                                color: '#1a73e8',
-                                border: 'none',
-                                padding: '1.25rem 2.5rem',
-                                borderRadius: '16px',
-                                fontSize: '1.1rem',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
-                                backdropFilter: 'blur(10px)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.transform = 'translateY(-4px) scale(1.02)';
-                                e.target.style.boxShadow = '0 15px 35px rgba(26, 115, 232, 0.3)';
-                                e.target.style.background = 'linear-gradient(135deg, #ffffff, #e2e8f0)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.transform = 'translateY(0) scale(1)';
-                                e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                                e.target.style.background = 'linear-gradient(135deg, #ffffff, #f8fafc)';
-                            }}
-                        >
-                            🚀 Our Services
-                        </button>
-                        <button
-                            onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
+                                background: 'transparent',
                                 color: 'white',
-                                border: '2px solid rgba(255, 255, 255, 0.3)',
-                                padding: '1.25rem 2.5rem',
-                                borderRadius: '16px',
-                                fontSize: '1.1rem',
-                                fontWeight: '700',
+                                border: '2px solid white',
+                                padding: '1rem 2rem',
+                                borderRadius: '4px',
+                                fontSize: '1rem',
+                                fontWeight: '600',
                                 cursor: 'pointer',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                backdropFilter: 'blur(10px)'
+                                transition: 'all 0.3s ease',
+                                textTransform: 'uppercase',
+                                letterSpacing: '1px'
                             }}
                             onMouseEnter={(e) => {
-                                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-                                e.target.style.transform = 'translateY(-4px) scale(1.02)';
-                                e.target.style.boxShadow = '0 15px 35px rgba(255, 255, 255, 0.2)';
+                                e.target.style.background = 'white';
+                                e.target.style.color = '#333';
                             }}
                             onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                                e.target.style.transform = 'translateY(0) scale(1)';
-                                e.target.style.boxShadow = 'none';
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = 'white';
                             }}
                         >
-                            📞 Contact Us
+                            LEARN MORE
                         </button>
                     </div>
                 </div>
             </section>
 
-            {/* Modern Company Overview */}
+            {/* White & Blue Service Categories Section */}
             <section style={{ 
                 padding: '6rem 0', 
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                position: 'relative'
+                color: '#1e293b',
+                position: 'relative',
+                overflow: 'hidden'
             }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+                {/* Background Pattern */}
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 50%)',
+                    opacity: 0.8
+                }}></div>
+                
+                <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 2 }}>
+                    {/* Section Header */}
                     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                         <h2 style={{
                             fontSize: '3rem',
                             fontWeight: '800',
-                            background: 'linear-gradient(135deg, #1a73e8, #4285f4)',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            margin: '0 0 1.5rem 0',
-                            animation: 'fadeInUp 0.8s ease-out'
+                            color: '#1e293b',
+                            margin: '0 0 1rem 0',
+                            textTransform: 'uppercase',
+                            letterSpacing: '2px'
                         }}>
-                            About AutoFuel Lanka
+                            Our Expertise
                         </h2>
                         <p style={{
-                            fontSize: '1.25rem',
-                            color: '#4a5568',
-                            maxWidth: '900px',
+                            fontSize: '1.2rem',
+                            color: '#64748b',
+                            maxWidth: '600px',
                             margin: '0 auto',
-                            lineHeight: '1.7',
-                            animation: 'fadeInUp 0.8s ease-out 0.2s both'
+                            lineHeight: '1.6'
                         }}>
-                            With over 15 years of experience in the automotive industry, 
-                            AutoFuel Lanka has established itself as the leading provider 
-                            of fuel station management and vehicle maintenance services in Sri Lanka.
+                            Professional automotive solutions with cutting-edge technology
                         </p>
                     </div>
-                    
+
+                    {/* Service Categories Grid */}
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                        gap: '2.5rem',
-                        marginTop: '4rem'
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                        gap: '2rem',
+                        marginBottom: '4rem'
                     }}>
+                        {/* Auto Repairs Category */}
                         <div style={{
                             background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-                            padding: '3rem 2rem',
                             borderRadius: '20px',
-                            textAlign: 'center',
-                            border: '1px solid rgba(26, 115, 232, 0.1)',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            padding: '2.5rem',
+                            border: '2px solid #e2e8f0',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
                             position: 'relative',
                             overflow: 'hidden'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-10px)';
-                            e.currentTarget.style.boxShadow = '0 20px 60px rgba(26, 115, 232, 0.15)';
-                            e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.2)';
+                            e.currentTarget.style.transform = 'translateY(-8px)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #ffffff, #f1f5f9)';
+                            e.currentTarget.style.borderColor = '#2563eb';
+                            e.currentTarget.style.boxShadow = '0 20px 50px rgba(37, 99, 235, 0.2)';
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 10px 40px rgba(0,0,0,0.08)';
-                            e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.1)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #ffffff, #f8fafc)';
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
                         }}>
-                            <div style={{ 
-                                fontSize: '4rem', 
-                                marginBottom: '1.5rem',
-                                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
-                                animation: 'pulse 2s ease-in-out infinite'
-                            }}>🏆</div>
-                            <h3 style={{ 
-                                color: '#1a73e8', 
-                                margin: '0 0 1rem 0',
-                                fontSize: '1.5rem',
-                                fontWeight: '700'
-                            }}>Excellence</h3>
-                            <p style={{ 
-                                color: '#4a5568', 
-                                margin: 0,
-                                lineHeight: '1.6',
-                                fontSize: '1.1rem'
-                            }}>
-                                Award-winning service quality with certified technicians and state-of-the-art equipment.
-                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
+                                <div style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                                    borderRadius: '15px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginRight: '1rem',
+                                    boxShadow: '0 8px 25px rgba(37, 99, 235, 0.3)'
+                                }}>
+                                    <span style={{ fontSize: '1.5rem' }}>🔧</span>
+                                </div>
+                                <div>
+                                    <h3 style={{
+                                        fontSize: '1.8rem',
+                                        fontWeight: '700',
+                                        margin: '0 0 0.5rem 0',
+                                        color: '#1e293b'
+                                    }}>
+                                        Auto Repairs
+                                    </h3>
+                                    <p style={{
+                                        color: '#64748b',
+                                        margin: 0,
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        Professional repair services
+                                    </p>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                                {['Engine Repair', 'Brake Service', 'Transmission', 'Suspension'].map((service, idx) => (
+                                    <span key={idx} style={{
+                                        background: '#2563eb',
+                                        color: 'white',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '25px',
+                                        fontSize: '0.85rem',
+                                        fontWeight: '500',
+                                        border: '1px solid #2563eb'
+                                    }}>
+                                        {service}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
+
+                        {/* Auto Services Category */}
                         <div style={{
                             background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-                            padding: '3rem 2rem',
                             borderRadius: '20px',
-                            textAlign: 'center',
-                            border: '1px solid rgba(26, 115, 232, 0.1)',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            padding: '2.5rem',
+                            border: '2px solid #e2e8f0',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
                             position: 'relative',
                             overflow: 'hidden'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-10px)';
-                            e.currentTarget.style.boxShadow = '0 20px 60px rgba(26, 115, 232, 0.15)';
-                            e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.2)';
+                            e.currentTarget.style.transform = 'translateY(-8px)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #ffffff, #f1f5f9)';
+                            e.currentTarget.style.borderColor = '#2563eb';
+                            e.currentTarget.style.boxShadow = '0 20px 50px rgba(37, 99, 235, 0.2)';
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 10px 40px rgba(0,0,0,0.08)';
-                            e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.1)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #ffffff, #f8fafc)';
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
                         }}>
-                            <div style={{ 
-                                fontSize: '4rem', 
-                                marginBottom: '1.5rem',
-                                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
-                                animation: 'pulse 2s ease-in-out infinite 0.5s'
-                            }}>⚡</div>
-                            <h3 style={{ 
-                                color: '#1a73e8', 
-                                margin: '0 0 1rem 0',
-                                fontSize: '1.5rem',
-                                fontWeight: '700'
-                            }}>Speed</h3>
-                            <p style={{ 
-                                color: '#4a5568', 
-                                margin: 0,
-                                lineHeight: '1.6',
-                                fontSize: '1.1rem'
-                            }}>
-                                Fast and efficient service delivery without compromising on quality standards.
-                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
+                                <div style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                                    borderRadius: '15px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginRight: '1rem',
+                                    boxShadow: '0 8px 25px rgba(37, 99, 235, 0.3)'
+                                }}>
+                                    <span style={{ fontSize: '1.5rem' }}>⚙️</span>
+                                </div>
+                                <div>
+                                    <h3 style={{
+                                        fontSize: '1.8rem',
+                                        fontWeight: '700',
+                                        margin: '0 0 0.5rem 0',
+                                        color: '#1e293b'
+                                    }}>
+                                        Auto Services
+                                    </h3>
+                                    <p style={{
+                                        color: '#64748b',
+                                        margin: 0,
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        Comprehensive maintenance
+                                    </p>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                                {['Oil Change', 'Tire Service', 'AC Repair', 'Diagnostics'].map((service, idx) => (
+                                    <span key={idx} style={{
+                                        background: '#2563eb',
+                                        color: 'white',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '25px',
+                                        fontSize: '0.85rem',
+                                        fontWeight: '500',
+                                        border: '1px solid #2563eb'
+                                    }}>
+                                        {service}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                        <div style={{
-                            background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-                            padding: '3rem 2rem',
-                            borderRadius: '20px',
-                            textAlign: 'center',
-                            border: '1px solid rgba(26, 115, 232, 0.1)',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            position: 'relative',
-                            overflow: 'hidden'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-10px)';
-                            e.currentTarget.style.boxShadow = '0 20px 60px rgba(26, 115, 232, 0.15)';
-                            e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 10px 40px rgba(0,0,0,0.08)';
-                            e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.1)';
-                        }}>
-                            <div style={{ 
-                                fontSize: '4rem', 
-                                marginBottom: '1.5rem',
-                                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
-                                animation: 'pulse 2s ease-in-out infinite 1s'
-                            }}>🛡️</div>
-                            <h3 style={{ 
-                                color: '#1a73e8', 
-                                margin: '0 0 1rem 0',
-                                fontSize: '1.5rem',
-                                fontWeight: '700'
-                            }}>Reliability</h3>
-                            <p style={{ 
-                                color: '#4a5568', 
-                                margin: 0,
-                                lineHeight: '1.6',
-                                fontSize: '1.1rem'
+                    </div>
+
+                    {/* Service Icons Grid with Supercar Images */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                        gap: '2rem'
+                    }}>
+                        {[
+                            { 
+                                icon: '🔑', 
+                                name: 'Car Keys', 
+                                description: 'Key programming & replacement',
+                                image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
+                            },
+                            { 
+                                icon: '🧯', 
+                                name: 'Safety Equipment', 
+                                description: 'Fire safety & emergency tools',
+                                image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
+                            },
+                            { 
+                                icon: '⛽', 
+                                name: 'Fuel Services', 
+                                description: 'Fuel system maintenance',
+                                image: 'https://images.unsplash.com/photo-1644246905181-c3753e9a82bd?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1974?w=400&h=300&fit=crop'
+                            },
+                            { 
+                                icon: '🏪', 
+                                name: 'Gas Station', 
+                                description: '24/7 fuel availability',
+                                image: 'https://images.unsplash.com/photo-1527018601619-a508a2be00cd?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1174?w=400&h=300&fit=crop'
+                            },
+                            { 
+                                icon: '🚗', 
+                                name: 'Steering', 
+                                description: 'Steering system repair',
+                                image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop'
+                            },
+                            { 
+                                icon: '⚙️', 
+                                name: 'Transmission', 
+                                description: 'Transmission service & repair',
+                                image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop'
+                            }
+                        ].map((service, index) => (
+                            <div key={index} style={{
+                                background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
+                                borderRadius: '20px',
+                                padding: '0',
+                                textAlign: 'center',
+                                border: '2px solid #e2e8f0',
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-10px)';
+                                e.currentTarget.style.borderColor = '#2563eb';
+                                e.currentTarget.style.boxShadow = '0 25px 50px rgba(37, 99, 235, 0.2)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.borderColor = '#e2e8f0';
+                                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
                             }}>
-                                Trusted by thousands of customers with 99% satisfaction rate and comprehensive warranties.
+                                {/* Supercar Image Background */}
+                                <div style={{
+                                    height: '150px',
+                                    background: `linear-gradient(rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.2)), url(${service.image}) center/cover`,
+                                    position: 'relative',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <div style={{
+                                        width: '60px',
+                                        height: '60px',
+                                        background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                                        borderRadius: '15px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 8px 25px rgba(37, 99, 235, 0.4)'
+                                    }}>
+                                        <span style={{ fontSize: '1.5rem' }}>{service.icon}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Content */}
+                                <div style={{ padding: '1.5rem' }}>
+                                    <h4 style={{
+                                        fontSize: '1.2rem',
+                                        fontWeight: '700',
+                                        color: '#1e293b',
+                                        margin: '0 0 0.5rem 0'
+                                    }}>
+                                        {service.name}
+                                    </h4>
+                                    <p style={{
+                                        color: '#64748b',
+                                        fontSize: '0.9rem',
+                                        margin: 0,
+                                        lineHeight: '1.4'
+                                    }}>
+                                        {service.description}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Why Choose Us Section */}
+            <section id="about" style={{ 
+                padding: '6rem 0', 
+                background: 'white'
+            }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4rem' }}>
+                        {/* Left Side - Content */}
+                        <div style={{ flex: '1' }}>
+                            <div style={{ 
+                                fontSize: '0.9rem',
+                                fontWeight: '600',
+                                letterSpacing: '2px',
+                                color: '#6b7280',
+                                marginBottom: '1rem'
+                            }}>
+                                WHY CHOOSE US
+                        </div>
+                            <h2 style={{
+                                fontSize: '3rem',
+                                fontWeight: '800',
+                                color: '#1f2937',
+                                margin: '0 0 2rem 0',
+                                lineHeight: '1.1'
+                            }}>
+                                We Offer A Complete<br />Diagnostic For Your Car
+                            </h2>
+                            <p style={{ 
+                                fontSize: '1.1rem',
+                                color: '#6b7280',
+                                lineHeight: '1.7',
+                                marginBottom: '2rem'
+                            }}>
+                                Vehicles are becoming ever more complex and challenging to repair. 
+                                Our service has the upper hand in overcoming these challenges by 
+                                pairing technology and innovation.
                             </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {[
+                                    'WE HAVE 24/7 EMERGENCY HOTLINE',
+                                    'MOBILE DIAGNOSTIC SERVICE AT HOME',
+                                    'MANAGE YOUR CAR ONLINE 24/7'
+                                ].map((feature, index) => (
+                                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <div style={{
+                                            color: '#2563eb',
+                                            fontSize: '1.2rem',
+                                            fontWeight: 'bold'
+                                        }}>✓</div>
+                                        <span style={{
+                                            color: '#374151',
+                                            fontSize: '1rem',
+                                            fontWeight: '500'
+                                        }}>
+                                            {feature}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right Side - Vehicle Images */}
+                        <div style={{ flex: '1', display: 'flex', gap: '1rem', position: 'relative' }}>
+                            <div style={{
+                                flex: '1',
+                                height: '400px',
+                                background: `url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=600&fit=crop') center/cover`,
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+                            }} />
+                            <div style={{
+                                flex: '1',
+                                height: '400px',
+                                background: `url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=600&fit=crop') center/cover`,
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                                marginTop: '2rem'
+                            }} />
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Modern Services Section */}
+            {/* Dark Automotive Services Section */}
             <section id="services" style={{ 
                 padding: '6rem 0', 
-                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                background: '#0f0f0f',
+                color: 'white',
                 position: 'relative'
             }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+                <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
+                    {/* Services Title */}
                     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                         <h2 style={{
                             fontSize: '3rem',
                             fontWeight: '800',
-                            background: 'linear-gradient(135deg, #1a73e8, #4285f4)',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            margin: '0 0 1.5rem 0',
-                            animation: 'fadeInUp 0.8s ease-out'
+                            color: 'white',
+                            margin: '0 0 1rem 0',
+                            textTransform: 'uppercase',
+                            letterSpacing: '2px'
                         }}>
-                            Our Services
+                            OUR SERVICES
                         </h2>
-                        <p style={{
-                            fontSize: '1.25rem',
-                            color: '#4a5568',
-                            maxWidth: '700px',
-                            margin: '0 auto',
-                            lineHeight: '1.7',
-                            animation: 'fadeInUp 0.8s ease-out 0.2s both'
-                        }}>
-                            Professional automotive services with expert technicians and quality guarantee. 
-                            Login to book your service today.
-                        </p>
+                        <div style={{
+                            width: '100px',
+                            height: '3px',
+                            background: '#2563eb',
+                            margin: '0 auto'
+                        }}></div>
                     </div>
 
+                    {/* Tilted Service Panels */}
                     <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                        gap: '2.5rem'
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: '2rem',
+                        marginBottom: '4rem',
+                        flexWrap: 'wrap'
                     }}>
-                        {services.map((service, index) => (
+                        {[
+                            {
+                                name: 'PPF',
+                                fullName: 'Paint Protection Film',
+                                image: 'https://plus.unsplash.com/premium_photo-1664299618568-f1338781d7ad?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170?w=300&h=400&fit=crop',
+                                description: 'Ultimate paint protection with self-healing film technology'
+                            },
+                            {
+                                name: 'CERAMIC COATING',
+                                fullName: 'Ceramic Coating',
+                                image: 'https://plus.unsplash.com/premium_photo-1682142358040-cc602ecb0366?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1187?w=300&h=400&fit=crop',
+                                description: 'Long-lasting protection with hydrophobic properties'
+                            },
+                            {
+                                name: 'Tyre Service',
+                                fullName: 'Tyre Service',
+                                image: 'https://plus.unsplash.com/premium_photo-1663021813022-04dbaa414fee?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687?w=300&h=400&fit=crop',
+                                description: 'Next-generation coating with superior durability'
+                            },
+                            {
+                                name: 'Car Wash',
+                                fullName: 'Car Wash',
+                                image: 'https://images.unsplash.com/photo-1575844611398-2a68400b437c?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1172?w=300&h=400&fit=crop',
+                                description: 'Professional collision repair and bodywork services'
+                            }
+                        ].map((service, index) => (
                             <div
-                                key={service.id}
+                                key={index}
                                 style={{
-                                    background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-                                    borderRadius: '24px',
-                                    overflow: 'hidden',
-                                    boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
-                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    width: '280px',
+                                    height: '400px',
+                                    background: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${service.image}) center/cover`,
+                                    border: '2px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    transform: 'rotate(2deg)',
+                                    transition: 'all 0.3s ease',
                                     cursor: 'pointer',
-                                    border: '1px solid rgba(26, 115, 232, 0.1)',
                                     position: 'relative',
-                                    animation: `fadeInUp 0.8s ease-out ${0.1 * index}s both`
+                                    overflow: 'hidden',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-                                    e.currentTarget.style.boxShadow = '0 25px 60px rgba(26, 115, 232, 0.15)';
-                                    e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.2)';
+                                    e.currentTarget.style.transform = 'rotate(0deg) scale(1.05)';
+                                    e.currentTarget.style.boxShadow = '0 30px 60px rgba(37, 99, 235, 0.3)';
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                                    e.currentTarget.style.boxShadow = '0 10px 40px rgba(0,0,0,0.08)';
-                                    e.currentTarget.style.borderColor = 'rgba(26, 115, 232, 0.1)';
+                                    e.currentTarget.style.transform = 'rotate(2deg) scale(1)';
+                                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.5)';
                                 }}
-                                onClick={() => handleServiceClick(service)}
                             >
                                 <div style={{
-                                    height: '220px',
-                                    background: `linear-gradient(135deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)), url(${service.image}) center/cover`,
-                                    position: 'relative',
-                                    overflow: 'hidden'
+                                    position: 'absolute',
+                                    top: '2rem',
+                                    left: '2rem',
+                                    right: '2rem'
                                 }}>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '1.5rem',
-                                        right: '1.5rem',
-                                        background: 'linear-gradient(135deg, #1a73e8, #4285f4)',
-                                        color: 'white',
-                                        padding: '0.75rem 1.5rem',
-                                        borderRadius: '25px',
-                                        fontSize: '1rem',
-                                        fontWeight: '700',
-                                        boxShadow: '0 4px 15px rgba(26, 115, 232, 0.3)',
-                                        backdropFilter: 'blur(10px)'
-                                    }}>
-                                        LKR {service.price.toLocaleString()}
-                                    </div>
-                                    <div style={{
-                                        position: 'absolute',
-                                        bottom: '1.5rem',
-                                        left: '1.5rem',
-                                        background: 'rgba(255, 255, 255, 0.9)',
-                                        backdropFilter: 'blur(10px)',
-                                        padding: '0.5rem 1rem',
-                                        borderRadius: '20px',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '600',
-                                        color: '#1a73e8'
-                                    }}>
-                                        ⏱️ {service.duration}
-                                    </div>
-                                </div>
-                                <div style={{ padding: '2rem' }}>
                                     <h3 style={{
                                         fontSize: '1.5rem',
-                                        fontWeight: '700',
-                                        color: '#1a1a1a',
-                                        margin: '0 0 1rem 0',
-                                        lineHeight: '1.3'
+                                        fontWeight: '800',
+                                        color: 'white',
+                                        margin: '0 0 0.5rem 0',
+                                        textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                        letterSpacing: '1px'
                                     }}>
                                         {service.name}
                                     </h3>
                                     <p style={{
-                                        color: '#4a5568',
-                                        fontSize: '1rem',
-                                        margin: '0 0 1.5rem 0',
-                                        lineHeight: '1.6'
+                                        fontSize: '0.9rem',
+                                        color: '#e5e7eb',
+                                        margin: 0,
+                                        lineHeight: '1.4',
+                                        textShadow: '0 1px 2px rgba(0,0,0,0.8)'
                                     }}>
                                         {service.description}
                                     </p>
+                                </div>
+                                
                                     <div style={{
-                                        display: 'flex',
-                                        flexWrap: 'wrap',
-                                        gap: '0.5rem',
-                                        marginBottom: '1.5rem'
-                                    }}>
-                                        {service.features.map((feature, idx) => (
-                                            <span key={idx} style={{
-                                                background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-                                                color: '#1a73e8',
-                                                padding: '0.4rem 0.8rem',
-                                                borderRadius: '15px',
-                                                fontSize: '0.85rem',
-                                                fontWeight: '500',
-                                                border: '1px solid rgba(26, 115, 232, 0.1)'
-                                            }}>
-                                                {feature}
-                                            </span>
-                                        ))}
-                                    </div>
+                                        position: 'absolute',
+                                    bottom: '2rem',
+                                    left: '2rem',
+                                    right: '2rem'
+                                }}>
                                     <button
                                         style={{
                                             width: '100%',
-                                            background: isAuthenticated() 
-                                                ? 'linear-gradient(135deg, #1a73e8, #4285f4)' 
-                                                : 'linear-gradient(135deg, #6c757d, #5a6268)',
+                                            background: 'rgba(37, 99, 235, 0.9)',
                                             color: 'white',
                                             border: 'none',
-                                            padding: '1rem 1.5rem',
-                                            borderRadius: '16px',
-                                            fontSize: '1rem',
+                                            padding: '0.75rem 1.5rem',
+                                            borderRadius: '6px',
+                                            fontSize: '0.9rem',
                                             fontWeight: '700',
-                                            cursor: isAuthenticated() ? 'pointer' : 'not-allowed',
-                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                            boxShadow: isAuthenticated() 
-                                                ? '0 8px 25px rgba(26, 115, 232, 0.3)' 
-                                                : '0 4px 15px rgba(108, 117, 125, 0.3)'
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '1px'
                                         }}
-                                        disabled={!isAuthenticated()}
                                         onMouseEnter={(e) => {
-                                            if (isAuthenticated()) {
-                                                e.target.style.transform = 'translateY(-2px)';
-                                                e.target.style.boxShadow = '0 12px 35px rgba(26, 115, 232, 0.4)';
-                                            }
+                                            e.target.style.background = '#2563eb';
+                                            e.target.style.transform = 'translateY(-2px)';
                                         }}
                                         onMouseLeave={(e) => {
-                                            if (isAuthenticated()) {
-                                                e.target.style.transform = 'translateY(0)';
-                                                e.target.style.boxShadow = '0 8px 25px rgba(26, 115, 232, 0.3)';
-                                            }
+                                            e.target.style.background = 'rgba(37, 99, 235, 0.9)';
+                                            e.target.style.transform = 'translateY(0)';
                                         }}
                                     >
-                                        {isAuthenticated() ? '🚀 Book Service' : '🔒 Login to Book'}
+                                        Learn More
                                     </button>
-                                </div>
+                                    </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Prominent Vehicle Showcase */}
+                                    <div style={{
+                        textAlign: 'center',
+                        position: 'relative'
+                    }}>
+                        <div style={{
+                            width: '100%',
+                            maxWidth: '800px',
+                            height: '500px',
+                            background: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1200&h=800&fit=crop') center/cover`,
+                                        borderRadius: '20px',
+                            margin: '0 auto',
+                            boxShadow: '0 30px 60px rgba(0,0,0,0.6)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '3rem',
+                                left: '3rem',
+                                right: '3rem'
+                            }}>
+                                    <h3 style={{
+                                    fontSize: '2.5rem',
+                                    fontWeight: '800',
+                                    color: 'white',
+                                        margin: '0 0 1rem 0',
+                                    textShadow: '0 4px 8px rgba(0,0,0,0.8)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '2px'
+                                    }}>
+                                    Premium Automotive Care
+                                    </h3>
+                                    <p style={{
+                                    fontSize: '1.2rem',
+                                    color: '#e5e7eb',
+                                    margin: '0 0 2rem 0',
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                        lineHeight: '1.6'
+                                    }}>
+                                    Experience the ultimate in automotive protection and restoration services
+                                </p>
+                                <button
+                                    style={{
+                                        background: '#2563eb',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '1rem 2.5rem',
+                                        borderRadius: '8px',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1px',
+                                        boxShadow: '0 8px 25px rgba(37, 99, 235, 0.4)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = '#1d4ed8';
+                                        e.target.style.transform = 'translateY(-3px)';
+                                        e.target.style.boxShadow = '0 12px 35px rgba(37, 99, 235, 0.6)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = '#2563eb';
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 8px 25px rgba(37, 99, 235, 0.4)';
+                                    }}
+                                >
+                                    Get Quote Now
+                                </button>
+                                </div>
+                            </div>
                     </div>
                 </div>
             </section>
@@ -716,10 +964,7 @@ export default function HomePage({ onNavigate }) {
                         <h2 style={{
                             fontSize: '3rem',
                             fontWeight: '800',
-                            background: 'linear-gradient(135deg, #1a73e8, #4285f4)',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
+                            color: '#1f2937',
                             margin: '0 0 1.5rem 0',
                             animation: 'fadeInUp 0.8s ease-out'
                         }}>
@@ -1130,20 +1375,20 @@ export default function HomePage({ onNavigate }) {
 
             {/* Footer */}
             <footer style={{
-                background: '#1a1a1a',
+                background: '#1f2937',
                 color: 'white',
-                padding: '2rem 0',
+                padding: '3rem 0',
                 textAlign: 'center'
             }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ fontSize: '2rem' }}>⛽</div>
+                        <div style={{ fontSize: '2rem' }}>⚙️</div>
                         <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700' }}>AutoFuel Lanka</h3>
                     </div>
-                    <p style={{ color: '#ccc', margin: '0 0 1rem 0' }}>
+                    <p style={{ color: '#9ca3af', margin: '0 0 1rem 0', fontSize: '1.1rem' }}>
                         Your trusted partner for premium automotive services
                     </p>
-                    <p style={{ color: '#999', margin: 0, fontSize: '0.9rem' }}>
+                    <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>
                         © {new Date().getFullYear()} AutoFuel Lanka. All rights reserved.
                     </p>
                 </div>

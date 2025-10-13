@@ -68,16 +68,43 @@ export default function CustomerMyBookings({ onNavigate }) {
             return;
         }
 
+        console.log("Editing booking:", booking); // Debug log
+        
         setEditingBooking(booking);
+        
+        // Parse the startTime properly - handle both ISO format and MySQL format
+        let dateValue = "";
+        let timeValue = "";
+        
+        if (booking.startTime) {
+            // Handle both "2025-10-07T09:00:00" and "2025-10-07 09:00:00" formats
+            const timeStr = booking.startTime.replace(" ", "T");
+            const dateTime = new Date(timeStr);
+            
+            if (!isNaN(dateTime.getTime())) {
+                dateValue = dateTime.toISOString().split("T")[0];
+                timeValue = dateTime.toTimeString().substring(0, 5);
+            }
+        }
+        
         setEditForm({
-            vehicleId: booking.vehicleId || "",
-            locationId: booking.locationId || "",
+            vehicleId: booking.vehicleId ? booking.vehicleId.toString() : "",
+            locationId: booking.locationId ? booking.locationId.toString() : "",
             serviceType: booking.serviceName || booking.serviceType || "",
-            preferredDate: booking.startTime ? booking.startTime.split("T")[0] : "",
-            preferredTime: booking.startTime ? booking.startTime.split("T")[1].substring(0, 5) : "",
+            preferredDate: dateValue,
+            preferredTime: timeValue,
             description: booking.description || "",
             urgency: booking.urgency || "NORMAL"
         });
+        
+        console.log("Form populated with:", {
+            vehicleId: booking.vehicleId ? booking.vehicleId.toString() : "",
+            locationId: booking.locationId ? booking.locationId.toString() : "",
+            preferredDate: dateValue,
+            preferredTime: timeValue,
+            description: booking.description || "",
+            urgency: booking.urgency || "NORMAL"
+        }); // Debug log
     };
 
     const handleUpdateBooking = async (e) => {
@@ -423,6 +450,20 @@ export default function CustomerMyBookings({ onNavigate }) {
                         <h3 style={{ color: "#1a73e8", marginBottom: "20px" }}>
                             Edit Booking #{editingBooking.id}
                         </h3>
+                        
+                        {/* Debug info */}
+                        <div style={{ 
+                            background: "#f0f0f0", 
+                            padding: "10px", 
+                            marginBottom: "20px", 
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontFamily: "monospace"
+                        }}>
+                            <strong>Debug Info:</strong><br/>
+                            Form values: {JSON.stringify(editForm, null, 2)}<br/>
+                            Booking data: {JSON.stringify(editingBooking, null, 2)}
+                        </div>
 
                         <form onSubmit={handleUpdateBooking}>
                             <div style={{ marginBottom: "20px" }}>

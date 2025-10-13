@@ -269,6 +269,24 @@ export default function Bookings() {
 
     return (
         <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
+            <style>
+                {`
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes slideIn {
+                        from { 
+                            opacity: 0; 
+                            transform: scale(0.9) translateY(-20px); 
+                        }
+                        to { 
+                            opacity: 1; 
+                            transform: scale(1) translateY(0); 
+                        }
+                    }
+                `}
+            </style>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h1>All Bookings</h1>
                 <button
@@ -332,25 +350,110 @@ export default function Bookings() {
                 )}
             </div>
 
-            {/* Booking Form */}
+            {/* Booking Modal */}
             {showForm && (
                 <div style={{
-                    backgroundColor: "#f8f9fa",
-                    padding: "20px",
-                    borderRadius: "5px",
-                    marginBottom: "20px",
-                    border: "1px solid #dee2e6"
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0,0,0,0.6)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 1000,
+                    backdropFilter: "blur(4px)",
+                    animation: "fadeIn 0.3s ease-out"
                 }}>
-                    <h3>{editId ? "Edit Booking" : "Create New Booking"}</h3>
-                    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "15px", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
+                    <div style={{
+                        background: "white",
+                        borderRadius: "16px",
+                        padding: "32px",
+                        maxWidth: "800px",
+                        width: "90%",
+                        maxHeight: "90vh",
+                        overflow: "auto",
+                        boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+                        transform: "scale(1)",
+                        animation: "slideIn 0.3s ease-out"
+                    }}>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "24px",
+                            paddingBottom: "16px",
+                            borderBottom: "2px solid #f0f0f0"
+                        }}>
+                            <h3 style={{ 
+                                margin: 0, 
+                                color: "#1a73e8", 
+                                fontSize: "24px", 
+                                fontWeight: "700" 
+                            }}>
+                                {editId ? "✏️ Edit Booking" : "➕ Create New Booking"}
+                            </h3>
+                            <button
+                                onClick={handleCancel}
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "24px",
+                                    cursor: "pointer",
+                                    color: "#666",
+                                    padding: "8px",
+                                    borderRadius: "50%",
+                                    transition: "all 0.2s ease"
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = "#f0f0f0";
+                                    e.target.style.color = "#333";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = "none";
+                                    e.target.style.color = "#666";
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit} style={{ 
+                            display: "grid", 
+                            gap: "20px", 
+                            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" 
+                        }}>
                         <div>
-                            <label>Customer *</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>Customer *</label>
                             <select
                                 name="customerId"
                                 value={form.customerId}
                                 onChange={handleInputChange}
                                 required
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             >
                                 <option value="">Select Customer</option>
                                 {customers.map(customer => (
@@ -362,13 +465,35 @@ export default function Bookings() {
                         </div>
 
                         <div>
-                            <label>Location *</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>Location *</label>
                             <select
                                 name="locationId"
                                 value={form.locationId}
                                 onChange={handleInputChange}
                                 required
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             >
                                 <option value="">Select Location</option>
                                 {locations.map(location => (
@@ -380,13 +505,35 @@ export default function Bookings() {
                         </div>
 
                         <div>
-                            <label>Vehicle *</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>Vehicle *</label>
                             <select
                                 name="vehicleId"
                                 value={form.vehicleId}
                                 onChange={handleInputChange}
                                 required
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             >
                                 <option value="">Select Vehicle</option>
                                 {vehicles.map(vehicle => (
@@ -398,12 +545,34 @@ export default function Bookings() {
                         </div>
 
                         <div>
-                            <label>Booking Type *</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>Booking Type *</label>
                             <select
                                 name="type"
                                 value={form.type}
                                 onChange={handleInputChange}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             >
                                 <option value="SERVICE">Service</option>
                                 <option value="FUEL">Fuel</option>
@@ -411,37 +580,103 @@ export default function Bookings() {
                         </div>
 
                         <div>
-                            <label>Start Time *</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>Start Time *</label>
                             <input
                                 type="datetime-local"
                                 name="startTime"
                                 value={form.startTime}
                                 onChange={handleInputChange}
                                 required
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             />
                         </div>
 
                         <div>
-                            <label>End Time *</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>End Time *</label>
                             <input
                                 type="datetime-local"
                                 name="endTime"
                                 value={form.endTime}
                                 onChange={handleInputChange}
                                 required
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             />
                         </div>
 
                         {form.type === "SERVICE" && (
                             <div>
-                                <label>Service Type</label>
+                                <label style={{ 
+                                    display: "block", 
+                                    fontWeight: "600", 
+                                    marginBottom: "8px", 
+                                    color: "#333",
+                                    fontSize: "14px"
+                                }}>Service Type</label>
                                 <select
                                     name="serviceTypeId"
                                     value={form.serviceTypeId}
                                     onChange={handleInputChange}
-                                    style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                    style={{ 
+                                        width: "100%", 
+                                        padding: "12px 16px", 
+                                        borderRadius: "8px", 
+                                        border: "2px solid #e0e0e0",
+                                        fontSize: "14px",
+                                        transition: "all 0.2s ease",
+                                        background: "white"
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = "#1a73e8";
+                                        e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = "#e0e0e0";
+                                        e.target.style.boxShadow = "none";
+                                    }}
                                 >
                                     <option value="">Select Service (Optional)</option>
                                     {serviceTypes.map(service => (
@@ -456,12 +691,34 @@ export default function Bookings() {
                         {form.type === "FUEL" && (
                             <>
                                 <div>
-                                    <label>Fuel Type</label>
+                                    <label style={{ 
+                                        display: "block", 
+                                        fontWeight: "600", 
+                                        marginBottom: "8px", 
+                                        color: "#333",
+                                        fontSize: "14px"
+                                    }}>Fuel Type</label>
                                     <select
                                         name="fuelType"
                                         value={form.fuelType}
                                         onChange={handleInputChange}
-                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                        style={{ 
+                                            width: "100%", 
+                                            padding: "12px 16px", 
+                                            borderRadius: "8px", 
+                                            border: "2px solid #e0e0e0",
+                                            fontSize: "14px",
+                                            transition: "all 0.2s ease",
+                                            background: "white"
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.borderColor = "#1a73e8";
+                                            e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = "#e0e0e0";
+                                            e.target.style.boxShadow = "none";
+                                        }}
                                     >
                                         <option value="">Select Fuel Type</option>
                                         <option value="PETROL">Petrol</option>
@@ -469,7 +726,13 @@ export default function Bookings() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label>Liters Requested</label>
+                                    <label style={{ 
+                                        display: "block", 
+                                        fontWeight: "600", 
+                                        marginBottom: "8px", 
+                                        color: "#333",
+                                        fontSize: "14px"
+                                    }}>Liters Requested</label>
                                     <input
                                         type="number"
                                         name="litersRequested"
@@ -477,19 +740,57 @@ export default function Bookings() {
                                         onChange={handleInputChange}
                                         min="0"
                                         step="0.1"
-                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                        style={{ 
+                                            width: "100%", 
+                                            padding: "12px 16px", 
+                                            borderRadius: "8px", 
+                                            border: "2px solid #e0e0e0",
+                                            fontSize: "14px",
+                                            transition: "all 0.2s ease",
+                                            background: "white"
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.borderColor = "#1a73e8";
+                                            e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = "#e0e0e0";
+                                            e.target.style.boxShadow = "none";
+                                        }}
                                     />
                                 </div>
                             </>
                         )}
 
                         <div>
-                            <label>Status</label>
+                            <label style={{ 
+                                display: "block", 
+                                fontWeight: "600", 
+                                marginBottom: "8px", 
+                                color: "#333",
+                                fontSize: "14px"
+                            }}>Status</label>
                             <select
                                 name="status"
                                 value={form.status}
                                 onChange={handleInputChange}
-                                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    borderRadius: "8px", 
+                                    border: "2px solid #e0e0e0",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                    background: "white"
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#1a73e8";
+                                    e.target.style.boxShadow = "0 0 0 3px rgba(26, 115, 232, 0.1)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#e0e0e0";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             >
                                 <option value="PENDING">Pending</option>
                                 <option value="COMPLETED">Completed</option>
@@ -497,7 +798,15 @@ export default function Bookings() {
                             </select>
                         </div>
 
-                        <div style={{ gridColumn: "1 / -1", display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                        <div style={{ 
+                            gridColumn: "1 / -1", 
+                            display: "flex", 
+                            gap: "16px", 
+                            justifyContent: "flex-end",
+                            marginTop: "24px",
+                            paddingTop: "24px",
+                            borderTop: "2px solid #f0f0f0"
+                        }}>
                             <button
                                 type="button"
                                 onClick={handleCancel}
@@ -505,9 +814,23 @@ export default function Bookings() {
                                     backgroundColor: "#6c757d",
                                     color: "white",
                                     border: "none",
-                                    padding: "10px 20px",
-                                    borderRadius: "5px",
-                                    cursor: "pointer"
+                                    padding: "12px 24px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    fontWeight: "600",
+                                    transition: "all 0.2s ease",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = "#5a6268";
+                                    e.target.style.transform = "translateY(-1px)";
+                                    e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = "#6c757d";
+                                    e.target.style.transform = "translateY(0)";
+                                    e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
                                 }}
                             >
                                 Cancel
@@ -515,18 +838,33 @@ export default function Bookings() {
                             <button
                                 type="submit"
                                 style={{
-                                    backgroundColor: "#28a745",
+                                    backgroundColor: "#1a73e8",
                                     color: "white",
                                     border: "none",
-                                    padding: "10px 20px",
-                                    borderRadius: "5px",
-                                    cursor: "pointer"
+                                    padding: "12px 24px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    fontWeight: "600",
+                                    transition: "all 0.2s ease",
+                                    boxShadow: "0 2px 4px rgba(26, 115, 232, 0.3)"
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = "#1557b0";
+                                    e.target.style.transform = "translateY(-1px)";
+                                    e.target.style.boxShadow = "0 4px 12px rgba(26, 115, 232, 0.4)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = "#1a73e8";
+                                    e.target.style.transform = "translateY(0)";
+                                    e.target.style.boxShadow = "0 2px 4px rgba(26, 115, 232, 0.3)";
                                 }}
                             >
-                                {editId ? "Update Booking" : "Create Booking"}
+                                {editId ? "✏️ Update Booking" : "➕ Create Booking"}
                             </button>
                         </div>
                     </form>
+                    </div>
                 </div>
             )}
 
