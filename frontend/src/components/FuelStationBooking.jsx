@@ -265,8 +265,10 @@ export default function FuelStationBooking() {
                             }}
                         >
                             <option value="">Select Fuel Type</option>
-                            <option value="PETROL">Petrol</option>
-                            <option value="DIESEL">Diesel</option>
+                            <option value="PETROL_92">Petrol 92</option>
+                            <option value="PETROL_95">Petrol 95</option>
+                            <option value="DIESEL_AUTO">Diesel Auto</option>
+                            <option value="DIESEL_SUPER">Diesel Super</option>
                         </select>
                     </div>
 

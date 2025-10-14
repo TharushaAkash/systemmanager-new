@@ -499,7 +499,7 @@ export default function CustomerMyBookings({ onNavigate }) {
                                 <div style={{ marginBottom: "8px" }}>
                                     <strong style={{ color: "#666" }}>Service:</strong>
                                     <div style={{ marginTop: "2px", color: "#1a73e8" }}>
-                                        {booking.serviceName || booking.serviceType || "Service Appointment"}
+                                        {booking.serviceName || "Service Appointment"}
                                     </div>
                                 </div>
 
@@ -1046,7 +1046,7 @@ export default function CustomerMyBookings({ onNavigate }) {
                                 Booking #{feedbackBooking.id}
                             </h4>
                             <p style={{ margin: "0", color: "#6c757d", fontSize: "0.9rem" }}>
-                                {feedbackBooking.serviceName || feedbackBooking.serviceType || "Service Appointment"}
+                                {feedbackBooking.serviceName || "Service Appointment"}
                             </p>
                         </div>
 

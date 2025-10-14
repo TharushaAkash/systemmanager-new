@@ -36,8 +36,14 @@ public interface FinanceLedgerRepository extends JpaRepository<FinanceLedger, Lo
     @Query("SELECT DISTINCT fl.account FROM FinanceLedger fl ORDER BY fl.account")
     List<String> findDistinctAccounts();
     
-    // Get account balance
-    @Query("SELECT COALESCE(SUM(CASE WHEN fl.transactionType = 'CREDIT' THEN fl.amount ELSE -fl.amount END), 0) FROM FinanceLedger fl WHERE fl.account = :account")
+    // Get account balance - Business logic: CREDIT=revenue, DEBIT=inventory expenses
+    @Query("SELECT COALESCE(SUM(CASE " +
+           "WHEN fl.account IN ('CASH', 'CARD_PAYMENTS', 'ONLINE_PAYMENTS', 'ACCOUNTS_RECEIVABLE') " +
+           "THEN (CASE WHEN fl.transactionType = 'CREDIT' THEN fl.amount ELSE -fl.amount END) " +
+           "WHEN fl.account = 'INVENTORY' " +
+           "THEN (CASE WHEN fl.transactionType = 'DEBIT' THEN fl.amount ELSE -fl.amount END) " +
+           "ELSE (CASE WHEN fl.transactionType = 'CREDIT' THEN fl.amount ELSE -fl.amount END) " +
+           "END), 0) FROM FinanceLedger fl WHERE fl.account = :account")
     Double getAccountBalance(@Param("account") String account);
     
     // Get total debits by account and date range
@@ -51,4 +57,18 @@ public interface FinanceLedgerRepository extends JpaRepository<FinanceLedger, Lo
     Double getTotalCreditsByAccountAndDateRange(@Param("account") String account, 
                                                @Param("startDate") LocalDateTime startDate, 
                                                @Param("endDate") LocalDateTime endDate);
+    
+    // Get total revenue for period (CREDIT transactions from REVENUE account)
+    @Query("SELECT COALESCE(SUM(fl.amount), 0) FROM FinanceLedger fl WHERE fl.account = 'REVENUE' AND fl.transactionType = 'CREDIT' AND fl.transactionDate BETWEEN :startDate AND :endDate")
+    Double getTotalRevenueForPeriod(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    // Get total inventory expenses for period (DEBIT transactions from INVENTORY account)
+    @Query("SELECT COALESCE(SUM(fl.amount), 0) FROM FinanceLedger fl WHERE fl.account = 'INVENTORY' AND fl.transactionType = 'DEBIT' AND fl.transactionDate BETWEEN :startDate AND :endDate")
+    Double getTotalInventoryExpensesForPeriod(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    // Get cash flow (money in vs money out)
+    @Query("SELECT COALESCE(SUM(CASE WHEN fl.transactionType = 'DEBIT' THEN fl.amount ELSE -fl.amount END), 0) " +
+           "FROM FinanceLedger fl WHERE fl.account IN ('CASH', 'CARD_PAYMENTS', 'ONLINE_PAYMENTS') " +
+           "AND fl.transactionDate BETWEEN :startDate AND :endDate")
+    Double getCashFlowForPeriod(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

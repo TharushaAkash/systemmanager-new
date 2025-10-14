@@ -721,8 +721,10 @@ export default function Bookings() {
                                         }}
                                     >
                                         <option value="">Select Fuel Type</option>
-                                        <option value="PETROL">Petrol</option>
-                                        <option value="DIESEL">Diesel</option>
+                                        <option value="PETROL_92">Petrol 92</option>
+                                        <option value="PETROL_95">Petrol 95</option>
+                                        <option value="DIESEL_AUTO">Diesel Auto</option>
+                                        <option value="DIESEL_SUPER">Diesel Super</option>
                                     </select>
                                 </div>
                                 <div>
@@ -916,8 +918,8 @@ export default function Bookings() {
                                         </span>
                                     </td>
                                     <td style={{ padding: "12px" }}>
-                                        {booking.serviceTypeId ? getServiceName(booking.serviceTypeId) :
-                                         booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : '-'}
+                                        {booking.serviceName || 
+                                         (booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : '-')}
                                     </td>
                                     <td style={{ padding: "12px" }}>
                                         <span style={{

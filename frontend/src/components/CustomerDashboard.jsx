@@ -634,8 +634,8 @@ function DashboardView({ stats, recentBookings, loading, onNavigate }) {
                                                     fontSize: '0.9rem',
                                                     margin: 0
                                                 }}>
-                                                    {booking.serviceTypeId ? `Service ${booking.serviceTypeId}` : 
-                                                     booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : 'General Service'}
+                                                    {booking.serviceName || 
+                                                     (booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : 'General Service')}
                                                 </p>
                                             </div>
                                         </div>
@@ -894,8 +894,8 @@ function MyBookingsView() {
                                         <td style={{ padding: "1rem", color: '#374151' }}>Location {booking.locationId}</td>
                                         <td style={{ padding: "1rem", color: '#374151' }}>Vehicle {booking.vehicleId}</td>
                                         <td style={{ padding: "1rem", color: '#374151' }}>
-                                        {booking.serviceTypeId ? `Service ${booking.serviceTypeId}` : 
-                                         booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : '-'}
+                                        {booking.serviceName || 
+                                         (booking.fuelType ? `${booking.fuelType}${booking.litersRequested ? ` (${booking.litersRequested}L)` : ''}` : '-')}
                                     </td>
                                         <td style={{ padding: "1rem" }}>
                                         <span style={{

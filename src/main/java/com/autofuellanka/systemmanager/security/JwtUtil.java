@@ -3,6 +3,7 @@ package com.autofuellanka.systemmanager.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 import java.security.Key;
@@ -14,22 +15,8 @@ public class JwtUtil {
     private final Key key;
     private final long ttlMillis;
 
-    public JwtUtil(String secret, long ttlMillis) {
-        // Ensure the secret is properly decoded
-        byte[] keyBytes;
-        if (secret.length() < 44) {
-            // If secret is not base64 encoded, use it directly
-            keyBytes = secret.getBytes();
-        } else {
-            // If secret is base64 encoded, decode it
-            try {
-                keyBytes = java.util.Base64.getDecoder().decode(secret);
-            } catch (IllegalArgumentException e) {
-                // Fallback to direct bytes if not valid base64
-                keyBytes = secret.getBytes();
-            }
-        }
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+    public JwtUtil(String base64Secret, long ttlMillis) {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
         this.ttlMillis = ttlMillis;
     }
 
@@ -45,10 +32,9 @@ public class JwtUtil {
     }
 
     public Claims parse(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        return Jwts.parserBuilder().setSigningKey(key).build()
+                .parseClaimsJws(token).getBody();
     }
 }
+
+

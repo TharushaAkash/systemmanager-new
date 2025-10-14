@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = "http://localhost:8080";
 
-export default function ServiceCenterBooking({ bookingType = "SERVICE", showTypeSelector = true, onNavigate }) {
+export default function ServiceCenterBooking({ bookingType = "SERVICE", showTypeSelector = true, selectedServiceType = null, onNavigate }) {
     const { user, token } = useAuth();
     const [vehicles, setVehicles] = useState([]);
     const [locations, setLocations] = useState([]);
@@ -15,7 +15,7 @@ export default function ServiceCenterBooking({ bookingType = "SERVICE", showType
     const [form, setForm] = useState({
         locationId: "",
         vehicleId: "",
-        serviceTypeId: "",
+        serviceTypeId: selectedServiceType ? selectedServiceType.id : "",
         bookingType: bookingType, // Use passed bookingType prop
         fuelType: "",
         litersRequested: "",
@@ -292,27 +292,42 @@ export default function ServiceCenterBooking({ bookingType = "SERVICE", showType
                             <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#2c3e50" }}>
                                 Service Type *
                             </label>
-                            <select
-                                name="serviceTypeId"
-                                value={form.serviceTypeId}
-                                onChange={handleInputChange}
-                                required
-                                style={{ 
+                            {selectedServiceType ? (
+                                <div style={{ 
                                     width: "100%", 
                                     padding: "12px", 
                                     borderRadius: "6px", 
                                     border: "1px solid #ced4da",
                                     fontSize: "14px",
-                                    backgroundColor: "white"
-                                }}
-                            >
-                                <option value="">Select Service</option>
-                                {serviceTypes.map(service => (
-                                    <option key={service.id} value={service.id}>
-                                        {service.name} - ${service.price} ({service.description})
-                                    </option>
-                                ))}
-                            </select>
+                                    backgroundColor: "#f8f9fa",
+                                    color: "#495057",
+                                    cursor: "not-allowed"
+                                }}>
+                                    {selectedServiceType.name} - ${selectedServiceType.price} ({selectedServiceType.description})
+                                </div>
+                            ) : (
+                                <select
+                                    name="serviceTypeId"
+                                    value={form.serviceTypeId}
+                                    onChange={handleInputChange}
+                                    required
+                                    style={{ 
+                                        width: "100%", 
+                                        padding: "12px", 
+                                        borderRadius: "6px", 
+                                        border: "1px solid #ced4da",
+                                        fontSize: "14px",
+                                        backgroundColor: "white"
+                                    }}
+                                >
+                                    <option value="">Select Service</option>
+                                    {serviceTypes.map(service => (
+                                        <option key={service.id} value={service.id}>
+                                            {service.name} - ${service.price} ({service.description})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
                     )}
 
@@ -337,8 +352,10 @@ export default function ServiceCenterBooking({ bookingType = "SERVICE", showType
                                     }}
                                 >
                                     <option value="">Select Fuel Type</option>
-                                    <option value="PETROL">Petrol</option>
-                                    <option value="DIESEL">Diesel</option>
+                                    <option value="PETROL_92">Petrol 92</option>
+                                    <option value="PETROL_95">Petrol 95</option>
+                                    <option value="DIESEL_AUTO">Diesel Auto</option>
+                                    <option value="DIESEL_SUPER">Diesel Super</option>
                                 </select>
                             </div>
 

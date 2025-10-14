@@ -25,6 +25,9 @@ public class BillingService {
     @Autowired
     private BookingRepository bookingRepository;
 
+    @Autowired
+    private FuelPricingService fuelPricingService;
+
 
     public Invoice createInvoiceFromBooking(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -67,16 +70,19 @@ public class BillingService {
             serviceLine.calculateLineTotal();
         }
 
-        // Add parts lines (if any parts were used)
-        // This would be populated from job parts or inventory usage
-        // For now, we'll add a placeholder
-        if (booking.getLitersRequested() != null && booking.getLitersRequested() > 0) {
+        // Add fuel line if fuel was requested
+        if (booking.getLitersRequested() != null && booking.getLitersRequested() > 0 && booking.getFuelType() != null) {
             InvoiceLine fuelLine = new InvoiceLine();
             fuelLine.setInvoice(invoice);
             fuelLine.setType(InvoiceLineType.PART);
             fuelLine.setDescription("Fuel - " + booking.getFuelType());
             fuelLine.setQuantity(booking.getLitersRequested().intValue());
-            fuelLine.setUnitPrice(2.50); // Example fuel price
+            
+            // Get fuel price from FuelPricingService
+            // Convert String fuelType to FuelType enum
+            FuelType fuelTypeEnum = FuelType.valueOf(booking.getFuelType());
+            Double pricePerLiter = fuelPricingService.getPricePerLiter(fuelTypeEnum);
+            fuelLine.setUnitPrice(pricePerLiter);
             fuelLine.calculateLineTotal();
         }
     }

@@ -15,7 +15,7 @@ public class BookingValidationService {
     // Allowed values
     private static final Set<String> ALLOWED_TYPES   = Set.of("FUEL", "SERVICE");
     private static final Set<String> ALLOWED_STATUS  = Set.of("PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED");
-    private static final Set<String> ALLOWED_FUEL    = Set.of("PETROL", "DIESEL");
+    private static final Set<String> ALLOWED_FUEL    = Set.of("PETROL_92", "PETROL_95", "DIESEL_AUTO", "DIESEL_SUPER");
 
     private final UserRepository userRepo;
     private final LocationRepository locationRepo;

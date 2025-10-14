@@ -10,8 +10,8 @@ public class BookingCreateRequest {
     private String startTime;
     private String endTime;
 
-    // Optional; if present must be PETROL or DIESEL
-    @Pattern(regexp = "(?i)PETROL|DIESEL", message = "fuelType must be PETROL or DIESEL")
+    // Optional; if present must be one of the valid fuel types
+    @Pattern(regexp = "(?i)PETROL_92|PETROL_95|DIESEL_AUTO|DIESEL_SUPER", message = "fuelType must be PETROL_92, PETROL_95, DIESEL_AUTO, or DIESEL_SUPER")
     private String fuelType;
 
     // Optional; if present must be > 0

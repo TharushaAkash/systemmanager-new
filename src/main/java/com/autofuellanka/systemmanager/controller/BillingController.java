@@ -134,16 +134,19 @@ public class BillingController {
 
             Invoice invoice = invoiceOpt.get();
 
-            // Check if invoice has payments
-            if (invoice.getPayments() != null && !invoice.getPayments().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body("Cannot delete invoice with existing payments. Please delete payments first.");
+            // Check if invoice has payments by querying the payment repository directly
+            List<Payment> payments = paymentRepository.findByInvoiceIdOrderByCreatedAtDesc(id);
+            if (payments != null && !payments.isEmpty()) {
+                // Delete payments first, then the invoice
+                paymentRepository.deleteByInvoiceId(id);
             }
 
-            // Delete the invoice
+            // Delete the invoice (cascade will handle invoice lines)
             invoiceRepository.deleteById(id);
             return ResponseEntity.ok().body("Invoice deleted successfully");
         } catch (Exception e) {
+            System.err.println("Error deleting invoice " + id + ": " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Error deleting invoice: " + e.getMessage());
         }
     }

@@ -33,4 +33,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // Get total payments by date range
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.createdAt BETWEEN :startDate AND :endDate")
     Double getTotalPaymentsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    // Delete payments by invoice ID
+    void deleteByInvoiceId(Long invoiceId);
 }

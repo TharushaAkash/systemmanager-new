@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 const API_BASE = "http://localhost:8080";
 
 export default function FinanceLedger({ onNavigate }) {
-    const { user, token, isAuthenticated, hasRole } = useAuth();
+    const { user, token, isAuthenticated, hasRole, logout } = useAuth();
     const [entries, setEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState("");
@@ -79,6 +79,8 @@ export default function FinanceLedger({ onNavigate }) {
             if (!res.ok) {
                 if (res.status === 401) {
                     console.error("Authentication failed, redirecting to login");
+                    // Clear the invalid token
+                    if (logout) logout();
                     if (onNavigate) {
                         onNavigate('login');
                     }
@@ -316,23 +318,31 @@ export default function FinanceLedger({ onNavigate }) {
                     marginBottom: 30
                 }}>
                     <SummaryCard
-                        title="Total Credits"
+                        title="Total Revenue"
                         value={formatCurrency(summary.totalCredits)}
                         color="#28a745"
-                        icon="⬆️"
+                        icon="📈"
                     />
                     <SummaryCard
-                        title="Total Debits"
+                        title="Inventory Expenses"
                         value={formatCurrency(summary.totalDebits)}
                         color="#dc3545"
-                        icon="⬇️"
+                        icon="📦"
                     />
                     <SummaryCard
-                        title="Net Amount"
+                        title="Net Income"
                         value={formatCurrency(summary.netAmount)}
                         color={summary.netAmount >= 0 ? "#28a745" : "#dc3545"}
                         icon="💰"
                     />
+                    {summary.cashFlow !== undefined && (
+                        <SummaryCard
+                            title="Cash Flow"
+                            value={formatCurrency(summary.cashFlow)}
+                            color={summary.cashFlow >= 0 ? "#17a2b8" : "#fd7e14"}
+                            icon="💵"
+                        />
+                    )}
                 </div>
             )}
 

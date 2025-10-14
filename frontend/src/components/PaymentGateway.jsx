@@ -51,7 +51,12 @@ export default function PaymentGateway({ bookingData, onNavigate, onPaymentSucce
         if (bookingData.bookingType === "FUEL") {
             // Fuel pricing: liters * price per liter
             const liters = bookingData.litersRequested || 0;
-            const pricePerLiter = 2.50; // Example fuel price
+            // Use correct fuel prices based on fuel type
+            let pricePerLiter = 299.0; // Default to Petrol 92
+            if (bookingData.fuelType === "PETROL_92") pricePerLiter = 299.0;
+            else if (bookingData.fuelType === "PETROL_95") pricePerLiter = 361.0;
+            else if (bookingData.fuelType === "DIESEL_AUTO") pricePerLiter = 277.0;
+            else if (bookingData.fuelType === "DIESEL_SUPER") pricePerLiter = 313.0;
             basePrice = liters * pricePerLiter;
         } else {
             // Service pricing based on service type
