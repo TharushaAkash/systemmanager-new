@@ -59,12 +59,8 @@ export default function PaymentGateway({ bookingData, onNavigate, onPaymentSucce
             else if (bookingData.fuelType === "DIESEL_SUPER") pricePerLiter = 313.0;
             basePrice = liters * pricePerLiter;
         } else {
-            // Service pricing based on service type
-            basePrice = bookingData.serviceType === "Oil Change" ? 5000 :
-                bookingData.serviceType === "Brake Repair" ? 15000 :
-                    bookingData.serviceType === "Full Service" ? 25000 :
-                        bookingData.serviceType === "Engine Diagnostic" ? 8000 :
-                            bookingData.serviceType === "Transmission Service" ? 12000 : 10000;
+            // Use actual service price from database
+            basePrice = bookingData.servicePrice || 0;
         }
 
         // Add urgency surcharge

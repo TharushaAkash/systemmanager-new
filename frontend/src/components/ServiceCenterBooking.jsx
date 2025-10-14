@@ -109,6 +109,7 @@ export default function ServiceCenterBooking({ bookingType = "SERVICE", showType
                 locationId: form.locationId,
                 serviceTypeId: form.serviceTypeId,
                 serviceType: selectedServiceType ? selectedServiceType.name : form.bookingType,
+                servicePrice: selectedServiceType ? selectedServiceType.price : 0,
                 preferredDate: form.startTime.split('T')[0],
                 preferredTime: form.startTime.split('T')[1].substring(0, 5),
                 description: form.description,
