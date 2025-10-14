@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 const API_BASE = "http://localhost:8080";
 
 export default function FinanceLedger({ onNavigate }) {
-    const { user, token } = useAuth(); // Get the token
+    const { user, token, isAuthenticated, hasRole } = useAuth();
     const [entries, setEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState("");
@@ -20,10 +20,39 @@ export default function FinanceLedger({ onNavigate }) {
         type: ""
     });
 
+    // Debug function to check token
+    const debugToken = () => {
+        if (!token) {
+            console.error("No token available");
+            return;
+        }
+
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                console.error("Invalid token format");
+                return;
+            }
+
+            const payload = JSON.parse(atob(parts[1]));
+            console.log("Token payload:", payload);
+            console.log("Token expires at:", new Date(payload.exp * 1000));
+            console.log("User roles:", payload.roles || payload.role);
+        } catch (e) {
+            console.error("Error parsing token:", e);
+        }
+    };
+
     const loadEntries = async () => {
         setLoading(true);
         setErr("");
         try {
+            if (!token) {
+                throw new Error("No authentication token found. Please login again.");
+            }
+
+            debugToken(); // Debug token information
+
             let url = `${API_BASE}/api/finance/ledger?page=${page}&size=${size}`;
 
             // Add filters to URL
@@ -38,14 +67,34 @@ export default function FinanceLedger({ onNavigate }) {
             }
 
             const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include'
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
 
+            if (!res.ok) {
+                if (res.status === 401) {
+                    console.error("Authentication failed, redirecting to login");
+                    if (onNavigate) {
+                        onNavigate('login');
+                    }
+                    throw new Error("Authentication failed. Please login again.");
+                }
+                if (res.status === 403) {
+                    throw new Error("You don't have permission to access this resource.");
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
             setEntries(data.content || data);
             setTotalPages(data.totalPages || 0);
         } catch (e) {
+            console.error("Error loading entries:", e);
             setErr(String(e.message));
         } finally {
             setLoading(false);
@@ -54,15 +103,31 @@ export default function FinanceLedger({ onNavigate }) {
 
     const loadSummary = async () => {
         try {
+            if (!token) {
+                console.error("No authentication token found for summary");
+                return;
+            }
+
             const params = new URLSearchParams();
             if (filters.from) params.append("from", filters.from);
             if (filters.to) params.append("to", filters.to);
 
             const url = `${API_BASE}/api/finance/ledger/summary?${params.toString()}`;
             const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    console.error("Authentication failed for summary");
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
+
             const data = await res.json();
             setSummary(data);
         } catch (e) {
@@ -72,10 +137,26 @@ export default function FinanceLedger({ onNavigate }) {
 
     const loadAccounts = async () => {
         try {
+            if (!token) {
+                console.error("No authentication token found for accounts");
+                return;
+            }
+
             const res = await fetch(`${API_BASE}/api/finance/ledger/accounts`, {
-                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    console.error("Authentication failed for accounts");
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
+
             const data = await res.json();
             setAccounts(data);
         } catch (e) {
@@ -103,7 +184,7 @@ export default function FinanceLedger({ onNavigate }) {
 
             const url = `${API_BASE}/api/finance/ledger/export/csv?${params.toString()}`;
             const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` } // Add authentication
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -139,10 +220,72 @@ export default function FinanceLedger({ onNavigate }) {
     };
 
     useEffect(() => {
+        if (!isAuthenticated()) {
+            console.error("User not authenticated, redirecting to login");
+            if (onNavigate) {
+                onNavigate('login');
+            }
+            return;
+        }
+
+        // Check if user has required role
+        if (!hasRole('ADMIN') && !hasRole('FINANCE')) {
+            console.error("User doesn't have required role");
+            return;
+        }
+
         loadEntries();
         loadSummary();
         loadAccounts();
-    }, [page]);
+    }, [page, isAuthenticated]);
+
+    // Show loading or redirect if not authenticated
+    if (!isAuthenticated()) {
+        return (
+            <div style={{ padding: 16, fontFamily: "system-ui, sans-serif", maxWidth: 1200, margin: "0 auto", textAlign: "center" }}>
+                <h2>Authentication Required</h2>
+                <p>Please login to access the Finance Ledger.</p>
+                <button
+                    onClick={() => onNavigate && onNavigate('login')}
+                    style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 4,
+                        cursor: "pointer"
+                    }}
+                >
+                    Go to Login
+                </button>
+            </div>
+        );
+    }
+
+    // Check if user has required role for finance access
+    if (!hasRole('ADMIN') && !hasRole('FINANCE')) {
+        return (
+            <div style={{ padding: 16, fontFamily: "system-ui, sans-serif", maxWidth: 1200, margin: "0 auto", textAlign: "center" }}>
+                <h2>Access Denied</h2>
+                <p>You don't have permission to access the Finance Ledger.</p>
+                <p>This feature requires <strong>FINANCE</strong> or <strong>ADMIN</strong> role.</p>
+                <p>Your current role: <strong>{user?.role || 'Unknown'}</strong></p>
+                <button
+                    onClick={() => onNavigate && onNavigate('home')}
+                    style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#6c757d",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 4,
+                        cursor: "pointer"
+                    }}
+                >
+                    Go to Home
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: 16, fontFamily: "system-ui, sans-serif", maxWidth: 1200, margin: "0 auto" }}>
@@ -325,7 +468,24 @@ export default function FinanceLedger({ onNavigate }) {
             {loading ? (
                 <p>Loading ledger entries...</p>
             ) : err ? (
-                <p style={{ color: "red" }}>Error: {err}</p>
+                <div style={{ color: "red", padding: 16, backgroundColor: "#f8d7da", borderRadius: 4 }}>
+                    <h3>Error:</h3>
+                    <p>{err}</p>
+                    <button
+                        onClick={loadEntries}
+                        style={{
+                            padding: "8px 16px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: 4,
+                            cursor: "pointer",
+                            marginTop: 10
+                        }}
+                    >
+                        Retry
+                    </button>
+                </div>
             ) : entries.length === 0 ? (
                 <p>No ledger entries found.</p>
             ) : (

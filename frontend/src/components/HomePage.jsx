@@ -41,7 +41,7 @@ export default function HomePage({ onNavigate }) {
         loadCustomerFeedback();
     }, []);
 
-    // Auto-rotate testimonials
+    // Auto-rotate testimonials and images
     useEffect(() => {
         const testimonialsToShow = customerFeedback.length > 0 ? customerFeedback : testimonials;
         if (testimonialsToShow.length > 1) {
@@ -51,6 +51,7 @@ export default function HomePage({ onNavigate }) {
             return () => clearInterval(interval);
         }
     }, [customerFeedback]);
+
 
     // Scroll effect for navigation
     useEffect(() => {
@@ -126,6 +127,7 @@ export default function HomePage({ onNavigate }) {
             image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
         }
     ];
+
 
     const handleInquirySubmit = (e) => {
         e.preventDefault();
@@ -1212,6 +1214,7 @@ export default function HomePage({ onNavigate }) {
                     </div>
                 </div>
             </section>
+
 
             {/* Inquiries Section */}
             <section id="inquiries" style={{ padding: '4rem 0', background: '#f8fafc' }}>

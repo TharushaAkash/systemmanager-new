@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
@@ -28,6 +29,7 @@ public class FinanceController {
     private FinanceLedgerRepository financeLedgerRepository;
 
     @GetMapping("/ledger")
+    @PreAuthorize("hasAnyRole('FINANCE', 'ADMIN')")
     public Page<FinanceLedger> getLedger(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -37,34 +39,37 @@ public class FinanceController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @RequestParam(required = false) String account,
             @RequestParam(required = false) TransactionType type) {
-        
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+
+        Sort sort = sortDir.equalsIgnoreCase("desc") ?
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
         return financeLedgerRepository.findAllByOrderByTransactionDateDesc(pageable);
     }
 
     @GetMapping("/ledger/accounts")
+    @PreAuthorize("hasAnyRole('FINANCE', 'ADMIN')")
     public List<String> getDistinctAccounts() {
         return financeLedgerRepository.findDistinctAccounts();
     }
 
     @GetMapping("/ledger/account/{account}/balance")
+    @PreAuthorize("hasAnyRole('FINANCE', 'ADMIN')")
     public ResponseEntity<Double> getAccountBalance(@PathVariable String account) {
         Double balance = financeLedgerRepository.getAccountBalance(account);
         return ResponseEntity.ok(balance);
     }
 
     @GetMapping("/ledger/export/csv")
+    @PreAuthorize("hasAnyRole('FINANCE', 'ADMIN')")
     public ResponseEntity<byte[]> exportLedgerCSV(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @RequestParam(required = false) String account) {
-        
+
         try {
             List<FinanceLedger> entries;
-            
+
             if (from != null && to != null) {
                 if (account != null) {
                     entries = financeLedgerRepository.findByAccountAndDateRange(account, from, to);
@@ -76,73 +81,74 @@ public class FinanceController {
             } else {
                 entries = financeLedgerRepository.findAll();
             }
-            
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter writer = new PrintWriter(baos);
-            
+
             // CSV Header
             writer.println("Date,Account,Type,Amount,Reference,Description");
-            
+
             // CSV Data
             for (FinanceLedger entry : entries) {
                 writer.printf("%s,%s,%s,%.2f,%s,%s%n",
-                    entry.getTransactionDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    entry.getAccount(),
-                    entry.getTransactionType(),
-                    entry.getAmount(),
-                    entry.getReference() != null ? entry.getReference() : "",
-                    entry.getDescription() != null ? entry.getDescription() : ""
+                        entry.getTransactionDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                        entry.getAccount(),
+                        entry.getTransactionType(),
+                        entry.getAmount(),
+                        entry.getReference() != null ? entry.getReference() : "",
+                        entry.getDescription() != null ? entry.getDescription() : ""
                 );
             }
-            
+
             writer.close();
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", 
-                "finance_ledger_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
-            
+            headers.setContentDispositionFormData("attachment",
+                    "finance_ledger_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
+
             return ResponseEntity.ok()
-                .headers(headers)
-                .body(baos.toByteArray());
-                
+                    .headers(headers)
+                    .body(baos.toByteArray());
+
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @GetMapping("/ledger/summary")
+    @PreAuthorize("hasAnyRole('FINANCE', 'ADMIN')")
     public ResponseEntity<FinanceSummary> getFinanceSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
-        
+
         FinanceSummary summary = new FinanceSummary();
-        
+
         LocalDateTime startDate = from != null ? from : LocalDateTime.now().withDayOfMonth(1);
         LocalDateTime endDate = to != null ? to : LocalDateTime.now();
-        
+
         // Get account balances
         List<String> accounts = financeLedgerRepository.findDistinctAccounts();
         for (String account : accounts) {
             Double balance = financeLedgerRepository.getAccountBalance(account);
             summary.addAccountBalance(account, balance);
         }
-        
+
         // Get totals for period
         Double totalDebits = 0.0;
         Double totalCredits = 0.0;
-        
+
         for (String account : accounts) {
             Double debits = financeLedgerRepository.getTotalDebitsByAccountAndDateRange(account, startDate, endDate);
             Double credits = financeLedgerRepository.getTotalCreditsByAccountAndDateRange(account, startDate, endDate);
             totalDebits += debits;
             totalCredits += credits;
         }
-        
+
         summary.setTotalDebits(totalDebits);
         summary.setTotalCredits(totalCredits);
         summary.setNetAmount(totalCredits - totalDebits);
-        
+
         return ResponseEntity.ok(summary);
     }
 
