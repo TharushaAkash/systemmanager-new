@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import InvoicePDFGenerator from "./InvoicePDFGenerator";
 
 const API_BASE = "http://localhost:8080";
