@@ -10,6 +10,7 @@ export default function InventoryItems({ onNavigate }) {
     const [selectedCategory, setSelectedCategory] = useState("");
     const [categories, setCategories] = useState([]);
     const [selectedItems, setSelectedItems] = useState(new Set());
+    const [showStockDrawer, setShowStockDrawer] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [editFormData, setEditFormData] = useState({
@@ -233,7 +234,7 @@ export default function InventoryItems({ onNavigate }) {
                             📦 Inventory Management
                         </h1>
                         <p style={{ margin: "8px 0 0 0", fontSize: "1.1rem", opacity: 0.9 }}>
-                            Manage your inventory items and stock levels
+                            Manage your inventory items and track stock movements
                         </p>
                     </div>
                     <div style={{ display: "flex", gap: "12px" }}>
@@ -261,6 +262,31 @@ export default function InventoryItems({ onNavigate }) {
                             }}
                         >
                             ➕ New Item
+                    </button>
+                        <button 
+                            onClick={() => onNavigate && onNavigate("inventory-moves")} 
+                            style={{ 
+                                padding: "12px 24px", 
+                                background: "rgba(255,255,255,0.2)", 
+                                color: "white", 
+                                border: "2px solid rgba(255,255,255,0.3)", 
+                                borderRadius: "12px",
+                                fontSize: "1rem",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                transition: "all 0.3s ease",
+                                backdropFilter: "blur(10px)"
+                            }}
+                            onMouseOver={(e) => {
+                                e.target.style.background = "rgba(255,255,255,0.3)";
+                                e.target.style.transform = "translateY(-2px)";
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.background = "rgba(255,255,255,0.2)";
+                                e.target.style.transform = "translateY(0)";
+                            }}
+                        >
+                            📊 Stock Moves
                     </button>
                     </div>
                 </div>
@@ -411,6 +437,31 @@ export default function InventoryItems({ onNavigate }) {
                             </span>
                         </div>
                         <div style={{ display: "flex", gap: "12px" }}>
+                    <button 
+                        onClick={() => setShowStockDrawer(true)}
+                                style={{ 
+                                    padding: "10px 20px", 
+                                    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", 
+                                    color: "white", 
+                                    border: "none", 
+                                    borderRadius: "8px",
+                                    fontSize: "0.9rem",
+                                    fontWeight: "600",
+                                    cursor: "pointer",
+                                    transition: "all 0.3s ease",
+                                    boxShadow: "0 2px 4px rgba(245, 158, 11, 0.3)"
+                                }}
+                                onMouseOver={(e) => {
+                                    e.target.style.transform = "translateY(-1px)";
+                                    e.target.style.boxShadow = "0 4px 8px rgba(245, 158, 11, 0.4)";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.target.style.transform = "translateY(0)";
+                                    e.target.style.boxShadow = "0 2px 4px rgba(245, 158, 11, 0.3)";
+                                }}
+                            >
+                                📊 Adjust Stock
+                    </button>
                     <button 
                         onClick={() => setSelectedItems(new Set())}
                                 style={{ 
@@ -703,6 +754,24 @@ export default function InventoryItems({ onNavigate }) {
                                                 >
                                                     ✏️ Edit
                                                 </button>
+                                <button
+                                    onClick={() => setShowStockDrawer(true)}
+                                                    style={{ 
+                                                        padding: "6px 12px", 
+                                                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", 
+                                                        color: "white", 
+                                                        border: "none", 
+                                                        borderRadius: "6px",
+                                                        fontSize: "0.75rem",
+                                                        fontWeight: "500",
+                                                        cursor: "pointer",
+                                                        transition: "all 0.2s ease"
+                                                    }}
+                                                    onMouseOver={(e) => e.target.style.transform = "translateY(-1px)"}
+                                                    onMouseOut={(e) => e.target.style.transform = "translateY(0)"}
+                                                >
+                                                    📊 Stock
+                                </button>
                                 <button 
                                     onClick={() => onDelete(item.id)}
                                                     style={{ 
@@ -731,6 +800,19 @@ export default function InventoryItems({ onNavigate }) {
             )}
             </div>
 
+            {/* Stock Drawer */}
+            {showStockDrawer && (
+                <StockDrawer 
+                    items={Array.from(selectedItems).map(id => items.find(item => item.id === id)).filter(Boolean)}
+                    onClose={() => setShowStockDrawer(false)}
+                    onSuccess={() => {
+                        setShowStockDrawer(false);
+                        setSelectedItems(new Set());
+                        load();
+                    }}
+                />
+            )}
+
             {/* Edit Modal */}
             {showEditModal && (
                 <EditModal 
@@ -742,6 +824,160 @@ export default function InventoryItems({ onNavigate }) {
                     onCancel={handleEditCancel}
                 />
             )}
+        </div>
+    );
+}
+
+// Stock Drawer Component
+function StockDrawer({ items, onClose, onSuccess }) {
+    const [moveType, setMoveType] = useState("RECEIVE");
+    const [quantity, setQuantity] = useState("");
+    const [reference, setReference] = useState("");
+    const [note, setNote] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!quantity || quantity <= 0) return;
+
+        setLoading(true);
+        try {
+            for (const item of items) {
+                const moveData = {
+                    item: { id: item.id },
+                    quantity: parseInt(quantity),
+                    type: moveType,
+                    reference: reference,
+                    note: note,
+                    createdBy: "current_user" // TODO: Get from auth context
+                };
+
+                const res = await fetch(`${API_BASE}/api/inventory/moves`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(moveData)
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            }
+            
+            onSuccess();
+        } catch (e) {
+            alert("Error processing stock move: " + e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+        }}>
+            <div style={{
+                backgroundColor: "white",
+                padding: 20,
+                borderRadius: 8,
+                minWidth: 400,
+                maxHeight: "80vh",
+                overflow: "auto"
+            }}>
+                <h3>Stock Movement</h3>
+                <p>Processing {items.length} item(s)</p>
+                
+                <form onSubmit={handleSubmit}>
+                    <div style={{ marginBottom: 15 }}>
+                        <label>Type:</label>
+                        <div style={{ display: "flex", gap: 10, marginTop: 5 }}>
+                            <label>
+                                <input
+                                    type="radio"
+                                    value="RECEIVE"
+                                    checked={moveType === "RECEIVE"}
+                                    onChange={(e) => setMoveType(e.target.value)}
+                                />
+                                Receive
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    value="ISSUE"
+                                    checked={moveType === "ISSUE"}
+                                    onChange={(e) => setMoveType(e.target.value)}
+                                />
+                                Issue
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    value="ADJUST"
+                                    checked={moveType === "ADJUST"}
+                                    onChange={(e) => setMoveType(e.target.value)}
+                                />
+                                Adjust
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: 15 }}>
+                        <label>Quantity:</label>
+                        <input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => setQuantity(e.target.value)}
+                            required
+                            min="1"
+                            style={{ width: "100%", padding: 8, marginTop: 5 }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: 15 }}>
+                        <label>Reference:</label>
+                        <input
+                            type="text"
+                            value={reference}
+                            onChange={(e) => setReference(e.target.value)}
+                            placeholder="Booking ID, Job ID, etc."
+                            style={{ width: "100%", padding: 8, marginTop: 5 }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: 15 }}>
+                        <label>Note:</label>
+                        <textarea
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="Additional notes..."
+                            style={{ width: "100%", padding: 8, marginTop: 5, minHeight: 60 }}
+                        />
+                    </div>
+
+                    <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4 }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            style={{ padding: "8px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: 4 }}
+                        >
+                            {loading ? "Processing..." : "Submit"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
