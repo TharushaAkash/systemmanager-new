@@ -21,7 +21,7 @@ public class Invoice {
     @Column(name = "invoice_number", nullable = false, unique = true, length = 50)
     private String invoiceNumber;
 
-    @Column(name = "booking_id", nullable = false, unique = true)
+    @Column(name = "booking_id", nullable = true, unique = true)
     private Long bookingId;
 
     @Column(name = "subtotal", nullable = false)

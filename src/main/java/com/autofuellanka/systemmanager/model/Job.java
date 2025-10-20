@@ -9,7 +9,7 @@ public class Job {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = true)
     private Booking booking;
 
     @ManyToOne(optional = false)

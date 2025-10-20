@@ -2,7 +2,13 @@ package com.autofuellanka.systemmanager.controller;
 
 import com.autofuellanka.systemmanager.dto.BookingDTO;
 import com.autofuellanka.systemmanager.model.Booking;
+import com.autofuellanka.systemmanager.model.Feedback;
+import com.autofuellanka.systemmanager.model.Invoice;
+import com.autofuellanka.systemmanager.model.Job;
 import com.autofuellanka.systemmanager.repository.BookingRepository;
+import com.autofuellanka.systemmanager.repository.FeedbackRepository;
+import com.autofuellanka.systemmanager.repository.InvoiceRepository;
+import com.autofuellanka.systemmanager.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +24,15 @@ public class BookingController {
 
     @Autowired
     private BookingRepository repo;
+    
+    @Autowired
+    private FeedbackRepository feedbackRepo;
+    
+    @Autowired
+    private InvoiceRepository invoiceRepo;
+    
+    @Autowired
+    private JobRepository jobRepo;
 
     // ✅ GET all bookings (with serviceType eagerly fetched)
     @GetMapping
@@ -93,14 +108,53 @@ public class BookingController {
         }
     }
 
-    // ✅ DELETE booking
+    // ✅ DELETE booking with proper foreign key handling
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        if (!repo.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+        try {
+            if (!repo.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
 
-        repo.deleteById(id);
-        return ResponseEntity.noContent().build();
+            // Step 1: Set foreign keys to NULL in related tables
+            // Handle Feedback records
+            List<Feedback> feedbacks = feedbackRepo.findAll().stream()
+                    .filter(f -> f.getBooking() != null && f.getBooking().getId().equals(id))
+                    .toList();
+            for (Feedback feedback : feedbacks) {
+                feedback.setBooking(null);
+                feedbackRepo.save(feedback);
+            }
+
+            // Handle Job records
+            List<Job> jobs = jobRepo.findAll().stream()
+                    .filter(j -> j.getBooking() != null && j.getBooking().getId().equals(id))
+                    .toList();
+            for (Job job : jobs) {
+                job.setBooking(null);
+                jobRepo.save(job);
+            }
+
+            // Handle Invoice records (set bookingId to NULL)
+            List<Invoice> invoices = invoiceRepo.findByBookingId(id);
+            for (Invoice invoice : invoices) {
+                invoice.setBookingId(null);
+                invoiceRepo.save(invoice);
+            }
+
+            // Step 2: Now safely delete the booking
+            repo.deleteById(id);
+            return ResponseEntity.noContent().build();
+
+        } catch (DataIntegrityViolationException ex) {
+            String msg = ex.getMostSpecificCause() != null
+                    ? ex.getMostSpecificCause().getMessage()
+                    : ex.getMessage();
+            return ResponseEntity.badRequest().body("DB constraint error: " + msg);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body("Server error: " + ex.getMessage());
+        }
     }
 }

@@ -14,8 +14,8 @@ public class Feedback {
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "booking_id", nullable = true)
     private Booking booking;
 
     @Min(1) @Max(5)

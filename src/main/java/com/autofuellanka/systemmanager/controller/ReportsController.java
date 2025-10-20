@@ -210,7 +210,7 @@ public class ReportsController {
     @GetMapping("/bookings")
     public ResponseEntity<byte[]> downloadBookingsReport() {
         try {
-            List<Booking> bookings = bookingRepository.findAll();
+            List<Booking> bookings = bookingRepository.findAllWithServiceTypeAndCustomer();
             
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter writer = new PrintWriter(baos);
