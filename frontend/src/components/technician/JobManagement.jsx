@@ -32,25 +32,25 @@ export default function JobManagement() {
             const requests = [
                 fetch(`${API_BASE}/api/jobs`, { headers }),
                 fetch(`${API_BASE}/api/bookings`, { headers }),
-                fetch(`${API_BASE}/api/users`, { headers }) // Assuming we can get all users to filter technicians
+                fetch(`${API_BASE}/api/technicians`, { headers })
             ];
 
-            const [jobsRes, bookingsRes, usersRes] = await Promise.all(requests);
+            const [jobsRes, bookingsRes, techniciansRes] = await Promise.all(requests);
             
             if (!jobsRes.ok) throw new Error(`Jobs fetch failed: ${jobsRes.status}`);
             if (!bookingsRes.ok) throw new Error(`Bookings fetch failed: ${bookingsRes.status}`);
-            if (!usersRes.ok) throw new Error(`Users fetch failed: ${usersRes.status}`);
+            if (!techniciansRes.ok) throw new Error(`Technicians fetch failed: ${techniciansRes.status}`);
 
-            const [jobsData, bookingsData, usersData] = await Promise.all([
+            const [jobsData, bookingsData, techniciansData] = await Promise.all([
                 jobsRes.json(),
                 bookingsRes.json(),
-                usersRes.json()
+                techniciansRes.json()
             ]);
 
             setJobs(jobsData);
             setBookings(bookingsData);
-            // Filter users to only show technicians and staff
-            setTechnicians(usersData.filter(u => u.role === 'TECHNICIAN' || u.role === 'STAFF'));
+            // Only technicians should appear in the dropdown
+            setTechnicians(techniciansData);
         } catch (e) {
             setError(e.message);
         } finally {

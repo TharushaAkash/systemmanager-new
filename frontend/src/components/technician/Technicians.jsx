@@ -9,6 +9,23 @@ export default function Technicians() {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [toast, setToast] = useState({ type: "", message: "" });
+    const [showModal, setShowModal] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [form, setForm] = useState({
+        id: null,
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        address: "",
+        city: "",
+        postalCode: "",
+        role: "TECHNICIAN",
+        password: ""
+    });
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const loadData = async () => {
         setLoading(true);
@@ -16,13 +33,13 @@ export default function Technicians() {
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
             const requests = [
-                fetch(`${API_BASE}/api/users`, { headers }),
+                fetch(`${API_BASE}/api/technicians`, { headers }),
                 fetch(`${API_BASE}/api/jobs`, { headers })
             ];
 
             const [usersRes, jobsRes] = await Promise.all(requests);
             
-            if (!usersRes.ok) throw new Error(`Users fetch failed: ${usersRes.status}`);
+            if (!usersRes.ok) throw new Error(`Technicians fetch failed: ${usersRes.status}`);
             if (!jobsRes.ok) throw new Error(`Jobs fetch failed: ${jobsRes.status}`);
 
             const [usersData, jobsData] = await Promise.all([
@@ -30,13 +47,142 @@ export default function Technicians() {
                 jobsRes.json()
             ]);
 
-            // Filter users to only show technicians and staff
-            setTechnicians(usersData.filter(u => u.role === 'TECHNICIAN' || u.role === 'STAFF'));
+            // usersData is already technicians list
+            setTechnicians(usersData);
             setJobs(jobsData);
         } catch (e) {
             setError(e.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const openCreateModal = () => {
+        setIsEdit(false);
+        setForm({
+            id: null,
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            address: "",
+            city: "",
+            postalCode: "",
+            role: "TECHNICIAN",
+            password: ""
+        });
+        setShowModal(true);
+    };
+
+    const openEditModal = (tech) => {
+        setIsEdit(true);
+        setForm({
+            id: tech.id,
+            firstName: tech.firstName || "",
+            lastName: tech.lastName || "",
+            email: tech.email || "",
+            phone: tech.phone || "",
+            address: tech.address || "",
+            city: tech.city || "",
+            postalCode: tech.postalCode || "",
+            role: tech.role || "TECHNICIAN",
+            password: ""
+        });
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        if (!saving) setShowModal(false);
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+        setFieldErrors(prev => ({ ...prev, [name]: "" }));
+    };
+
+    const saveTechnician = async () => {
+        setSaving(true);
+        setError("");
+        setToast({ type: "", message: "" });
+        // basic validation
+        const emailOk = /.+@.+\..+/.test(form.email);
+        const errors = {};
+        if (!form.firstName) errors.firstName = "First name is required";
+        if (!form.lastName) errors.lastName = "Last name is required";
+        if (!emailOk) errors.email = "Enter a valid email";
+        if (!isEdit && !form.password) errors.password = "Password is required";
+
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) {
+            setSaving(false);
+            return;
+        }
+        try {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+
+            if (isEdit) {
+                const res = await fetch(`${API_BASE}/api/technicians/${form.id}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({
+                        firstName: form.firstName,
+                        lastName: form.lastName,
+                        email: form.email,
+                        phone: form.phone,
+                        address: form.address,
+                        city: form.city,
+                        postalCode: form.postalCode,
+                        // only send password if provided
+                        ...(form.password ? { password: form.password } : {})
+                    })
+                });
+                if (!res.ok) throw new Error(`Update failed: ${res.status}`);
+                setToast({ type: "success", message: "Technician updated" });
+            } else {
+                const res = await fetch(`${API_BASE}/api/technicians`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        firstName: form.firstName,
+                        lastName: form.lastName,
+                        email: form.email,
+                        phone: form.phone,
+                        address: form.address,
+                        city: form.city,
+                        postalCode: form.postalCode,
+                        password: form.password
+                    })
+                });
+                if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+                setToast({ type: "success", message: "Technician created" });
+            }
+            setShowModal(false);
+            await loadData();
+        } catch (e) {
+            setError(e.message);
+            setToast({ type: "error", message: e.message });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const deleteTechnician = async (id) => {
+        if (!window.confirm('Delete this technician?')) return;
+        setError("");
+        setToast({ type: "", message: "" });
+        try {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            const res = await fetch(`${API_BASE}/api/technicians/${id}`, { method: 'DELETE', headers });
+            if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+            setToast({ type: "success", message: "Technician deleted" });
+            await loadData();
+        } catch (e) {
+            setError(e.message);
+            setToast({ type: "error", message: e.message });
         }
     };
 
@@ -88,23 +234,49 @@ export default function Technicians() {
         <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ margin: 0, color: "#1a73e8" }}>Available Technicians</h2>
-                <button 
-                    className="btn btn-primary"
-                    onClick={loadData}
-                >
-                    Refresh
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                        className="btn btn-secondary"
+                        onClick={loadData}
+                    >
+                        Refresh
+                    </button>
+                    <button 
+                        className="btn btn-primary"
+                        onClick={openCreateModal}
+                        style={{ boxShadow:'0 8px 20px rgba(26,115,232,0.25)' }}
+                        onMouseEnter={(e)=>{ e.currentTarget.style.transform='translateY(-2px)'; }}
+                        onMouseLeave={(e)=>{ e.currentTarget.style.transform='translateY(0)'; }}
+                    >
+                        + Add Technician
+                    </button>
+                </div>
             </div>
 
-            {error && (
-                <div style={{
-                    background: "#ffebee",
-                    color: "#c62828",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    marginBottom: "20px"
-                }}>
-                    {error}
+            {(error || toast.message) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                    {error && (
+                        <div style={{
+                            background: "#ffebee",
+                            color: "#c62828",
+                            padding: "12px",
+                            borderRadius: "8px"
+                        }}>
+                            {error}
+                        </div>
+                    )}
+                    {toast.message && (
+                        <div style={{
+                            alignSelf: 'flex-end',
+                            background: toast.type === 'success' ? '#e6ffed' : '#ffefef',
+                            color: toast.type === 'success' ? '#1a7f37' : '#b00020',
+                            padding: '10px 14px',
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                        }}>
+                            {toast.message}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -333,11 +505,90 @@ export default function Technicians() {
                                         )}
                                     </div>
                                 )}
+
+                                {/* Actions */}
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                    <button className="btn btn-sm btn-primary" onClick={() => openEditModal(technician)}>Edit</button>
+                                    <button className="btn btn-sm btn-danger" onClick={() => deleteTechnician(technician.id)}>Delete</button>
+                                </div>
                             </div>
                         );
                     })
                 )}
             </div>
+
+            {/* Modal */}
+            {showModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.4)', zIndex: 1000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{ background: 'white', borderRadius: '20px', width: '780px', maxWidth: '95vw', padding: '28px', boxShadow: '0 24px 60px rgba(26,115,232,0.25)', border: '1px solid #eef1f6' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <div>
+                                <div style={{ fontSize: '18px', fontWeight: 700 }}>{isEdit ? 'Edit Technician' : 'Add Technician'}</div>
+                                <div style={{ fontSize: '12px', color: '#6c757d' }}>Manage basic details used in jobs and assignments</div>
+                            </div>
+                            <button className="btn btn-sm" onClick={closeModal} disabled={saving} aria-label="Close">✕</button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+                            <div>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>First name</label>
+                                <input name="firstName" value={form.firstName} onChange={handleChange} className="form-control" placeholder="e.g. Nimal" />
+                                {fieldErrors.firstName && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.firstName}</div>}
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>Last name</label>
+                                <input name="lastName" value={form.lastName} onChange={handleChange} className="form-control" placeholder="e.g. Perera" />
+                                {fieldErrors.lastName && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.lastName}</div>}
+                            </div>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>Email</label>
+                                <input name="email" type="email" value={form.email} onChange={handleChange} className="form-control" placeholder="name@example.com" />
+                                {fieldErrors.email && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.email}</div>}
+                            </div>
+                            {!isEdit && (
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={{ fontSize: 12, color: '#6c757d' }}>Password</label>
+                                    <input name="password" type="password" value={form.password} onChange={handleChange} className="form-control" placeholder="min 6 characters" />
+                                    {fieldErrors.password && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.password}</div>}
+                                </div>
+                            )}
+                            <div>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>Phone</label>
+                                <input name="phone" value={form.phone} onChange={handleChange} className="form-control" placeholder="077xxxxxxx" />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>Role</label>
+                                <select name="role" value={form.role} onChange={handleChange} className="form-control">
+                                    <option value="TECHNICIAN">TECHNICIAN</option>
+                                    <option value="STAFF">STAFF</option>
+                                </select>
+                            </div>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>Address</label>
+                                <input name="address" value={form.address} onChange={handleChange} className="form-control" placeholder="Street address" />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>City</label>
+                                <input name="city" value={form.city} onChange={handleChange} className="form-control" placeholder="City" />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 12, color: '#6c757d' }}>Postal code</label>
+                                <input name="postalCode" value={form.postalCode} onChange={handleChange} className="form-control" placeholder="Postal code" />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '22px' }}>
+                            <div style={{ fontSize: 12, color: '#6c757d' }}>Role will remain TECHNICIAN for this screen</div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button className="btn btn-secondary" onClick={closeModal} disabled={saving}>Cancel</button>
+                                <button className="btn btn-primary" onClick={saveTechnician} disabled={saving} style={{ boxShadow:'0 8px 20px rgba(26,115,232,0.25)' }}>{saving ? 'Saving...' : (isEdit ? 'Save Changes' : 'Create Technician')}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

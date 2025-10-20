@@ -21,27 +21,27 @@ export default function PendingJobs() {
             const requests = [
                 fetch(`${API_BASE}/api/bookings`, { headers }),
                 fetch(`${API_BASE}/api/jobs`, { headers }),
-                fetch(`${API_BASE}/api/users`, { headers }),
+                fetch(`${API_BASE}/api/technicians`, { headers }),
                 fetch(`${API_BASE}/api/customers`, { headers })
             ];
 
-            const [bookingsRes, jobsRes, usersRes, customersRes] = await Promise.all(requests);
+            const [bookingsRes, jobsRes, techniciansRes, customersRes] = await Promise.all(requests);
             
             if (!bookingsRes.ok) throw new Error(`Bookings fetch failed: ${bookingsRes.status}`);
             if (!jobsRes.ok) throw new Error(`Jobs fetch failed: ${jobsRes.status}`);
-            if (!usersRes.ok) throw new Error(`Users fetch failed: ${usersRes.status}`);
+            if (!techniciansRes.ok) throw new Error(`Technicians fetch failed: ${techniciansRes.status}`);
             if (!customersRes.ok) throw new Error(`Customers fetch failed: ${customersRes.status}`);
 
-            const [bookingsData, jobsData, usersData, customersData] = await Promise.all([
+            const [bookingsData, jobsData, techniciansData, customersData] = await Promise.all([
                 bookingsRes.json(),
                 jobsRes.json(),
-                usersRes.json(),
+                techniciansRes.json(),
                 customersRes.json()
             ]);
 
             setBookings(bookingsData);
             setJobs(jobsData);
-            setTechnicians(usersData.filter(u => u.role === 'TECHNICIAN' || u.role === 'STAFF'));
+            setTechnicians(techniciansData);
             setCustomers(customersData);
         } catch (e) {
             setError(e.message);
