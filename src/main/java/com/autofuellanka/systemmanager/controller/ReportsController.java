@@ -1,7 +1,6 @@
 package com.autofuellanka.systemmanager.controller;
 
 import com.autofuellanka.systemmanager.model.InventoryItem;
-import com.autofuellanka.systemmanager.model.StockMove;
 import com.autofuellanka.systemmanager.model.VehicleType;
 import com.autofuellanka.systemmanager.model.Customer;
 import com.autofuellanka.systemmanager.model.Booking;
@@ -25,8 +24,6 @@ public class ReportsController {
     @Autowired
     private InventoryRepository inventoryRepository;
 
-    @Autowired
-    private StockMoveRepository stockMoveRepository;
 
     @Autowired
     private VehicleTypeRepository vehicleTypeRepository;
@@ -80,49 +77,6 @@ public class ReportsController {
         }
     }
 
-    // Download Stock Movements Report
-    @GetMapping("/stock-movements")
-    public ResponseEntity<byte[]> downloadStockMovementsReport(
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate) {
-        try {
-            List<StockMove> moves = stockMoveRepository.findAll();
-            
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintWriter writer = new PrintWriter(baos);
-            
-            // CSV Header
-            writer.println("Date,Item SKU,Item Name,Type,Quantity,Reference,Note,Created By");
-            
-            // CSV Data
-            for (StockMove move : moves) {
-                writer.printf("%s,%s,%s,%s,%d,%s,%s,%s%n",
-                    move.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    move.getItem() != null ? move.getItem().getSku() : "N/A",
-                    move.getItem() != null ? move.getItem().getName() : "N/A",
-                    move.getType(),
-                    move.getQuantity(),
-                    move.getReference() != null ? move.getReference() : "",
-                    move.getNote() != null ? move.getNote() : "",
-                    move.getCreatedBy() != null ? move.getCreatedBy() : ""
-                );
-            }
-            
-            writer.close();
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", 
-                "stock_movements_report_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
-            
-            return ResponseEntity.ok()
-                .headers(headers)
-                .body(baos.toByteArray());
-                
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
 
     // Download Vehicle Types Report
     @GetMapping("/vehicle-types")

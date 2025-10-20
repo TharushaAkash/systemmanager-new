@@ -170,7 +170,6 @@ Notes
     - `src/main/java/com/autofuellanka/systemmanager/controller/BookingController.java`
   - Inventory management:
     - `src/main/java/com/autofuellanka/systemmanager/controller/InventoryController.java`
-    - `src/main/java/com/autofuellanka/systemmanager/controller/StockMoveController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/ServiceTypeController.java`
   - Reports:
     - `src/main/java/com/autofuellanka/systemmanager/controller/ReportController.java`
@@ -237,11 +236,8 @@ Notes
   - PATCH `/api/jobs/{id}/status` → update from `JobManagement.jsx`
 
 ### 📦 Inventory and stock
-- Frontend: `components/staff/inventory.jsx`, `NewInventoryItem.jsx`, `StockMoves.jsx`, `ServiceTypes.jsx`
-- Backend: `controller/InventoryController.java`, `StockMoveController.java`, `ServiceTypeController.java`
 - Examples:
   - POST `/api/inventory` → create item (from `NewInventoryItem.jsx`)
-  - POST `/api/stock-moves` → record move (from `StockMoves.jsx`)
   - GET `/api/service-types` → list services (from `ServiceTypes.jsx`)
 
 ### 📈 Reports and finance dashboards (Manager/Finance)
