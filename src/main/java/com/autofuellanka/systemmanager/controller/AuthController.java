@@ -23,7 +23,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User req) {
-        System.out.println("🔍 AUTH LOGIN DEBUG:");
+        System.out.println("AUTH LOGIN DEBUG:");
         System.out.println("Request email: " + req.getEmail());
         System.out.println("Request password: " + req.getPassword());
         

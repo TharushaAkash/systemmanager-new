@@ -32,7 +32,7 @@ public class PaymentGatewayController {
     // Create invoice for a booking
     @PostMapping("/invoices")
     public ResponseEntity<?> createInvoice(@RequestBody InvoiceCreateRequest request) {
-        System.out.println("🔍 INVOICE CREATION DEBUG:");
+        System.out.println("INVOICE CREATION DEBUG:");
         System.out.println("Request received: " + request);
         System.out.println("Booking ID: " + request.getBookingId());
         System.out.println("Subtotal: " + request.getSubtotal());

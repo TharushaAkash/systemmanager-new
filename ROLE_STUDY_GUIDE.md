@@ -14,14 +14,26 @@ Notes
   - Can perform all operations available to other roles.
   - Exclusives: User Management and Customer Management.
 - Key Java files to study (focus on exclusives):
-  - User Management:
-    - `src/main/java/com/autofuellanka/systemmanager/controller/AdminUserController.java`
-    - `src/main/java/com/autofuellanka/systemmanager/controller/UserController.java`
-  - Customer Management:
-    - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerController.java`
-    - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerVehicleController.java`
-  - Role checks:
-    - `src/main/java/com/autofuellanka/systemmanager/service/RoleCheckService.java`
+    - User Management:
+      - `src/main/java/com/autofuellanka/systemmanager/controller/AdminUserController.java`
+      - `src/main/java/com/autofuellanka/systemmanager/controller/UserController.java`
+    - Customer Management:
+      - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerController.java`
+      - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerVehicleController.java`
+    - Role checks:
+      - `src/main/java/com/autofuellanka/systemmanager/service/RoleCheckService.java`
+    - Model:
+      - `src/main/java/com/autofuellanka/systemmanager/model/Location.java`
+      - `src/main/java/com/autofuellanka/systemmanager/model/LocationType.java`
+      - `src/main/java/com/autofuellanka/systemmanager/model/Role.java`
+      - `src/main/java/com/autofuellanka/systemmanager/model/User.java`
+    - Repository:
+      - `src/main/java/com/autofuellanka/systemmanager/repository/LocationRepository.java`
+      - `src/main/java/com/autofuellanka/systemmanager/repository/ServiceTypeRepository.java`
+      - `src/main/java/com/autofuellanka/systemmanager/repository/VehicleRepository.java`
+      - `src/main/java/com/autofuellanka/systemmanager/repository/VehicleTypeRepository.java`
+    - Service:
+      - `src/main/java/com/autofuellanka/systemmanager/service/RoleCheckService.java`
 
 ---
 
@@ -34,6 +46,18 @@ Notes
   - Vehicle Management:
     - `src/main/java/com/autofuellanka/systemmanager/controller/VehicleController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/VehicleTypeController.java`
+  - Reports:
+    - `src/main/java/com/autofuellanka/systemmanager/controller/ReportController.java` 
+  - Model:
+    - `src/main/java/com/autofuellanka/systemmanager/Model/FuelType.java`
+    - `src/main/java/com/autofuellanka/systemmanager/model/ServiceType.java`
+    - `src/main/java/com/autofuellanka/systemmanager/model/Vehicle.java`
+    - `src/main/java/com/autofuellanka/systemmanager/model/VehicleType.java`
+  - Repository:
+    - `src/main/java/com/autofuellanka/systemmanager/repository/ServiceTypeRepository.java`
+  - Service:
+    - `src/main/java/com/autofuellanka/systemmanager/service/FuelpricingService.java`
+
 
 ---
 
@@ -44,9 +68,16 @@ Notes
   - Controllers:
     - `src/main/java/com/autofuellanka/systemmanager/controller/JobController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/StaffController.java` (view technicians/listing)
+    - `src/main/java/com/autofuellanka/systemmanager/controller/TechnicianController.java`
   - Models/Enums:
     - `src/main/java/com/autofuellanka/systemmanager/model/JobStatus.java`
-    - `src/main/java/com/autofuellanka/systemmanager/model/BookingStatus.java`
+    - `src/main/java/com/autofuellanka/systemmanager/model/Job.java`
+  - DTO:
+    - `src/main/java/com/autofuellanka/systemmanager/dto/JobCreateRequest.java`
+    - `src/main/java/com/autofuellanka/systemmanager/dto/JobDTO.java`
+  - Repository:
+    - `src/main/java/com/autofuellanka/systemmanager/repository/JobRepository.java`
+   
 
 ---
 
@@ -58,11 +89,32 @@ Notes
     - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerBookingController.java`
   - Feedback:
     - `src/main/java/com/autofuellanka/systemmanager/controller/FeedbackController.java`
+  - Payment:
+    - `src/main/java/com/autofuellanka/systemmanager/controller/PaymentGatewayController.java` 
   - Auth:
     - `src/main/java/com/autofuellanka/systemmanager/controller/AuthController.java`
   - Profile & Vehicles:
     - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/CustomerVehicleController.java`
+  - Model:
+    - `src/main/java/com/autofuellanka/systemmanager/Model/Booking.java`
+    - `src/main/java/com/autofuellanka/systemmanager/Model/BookingStatus.java`
+    - `src/main/java/com/autofuellanka/systemmanager/Model/BookingType.java`
+    - `src/main/java/com/autofuellanka/systemmanager/Model/Customer.java`
+    - `src/main/java/com/autofuellanka/systemmanager/Model/Feedback.java`
+    - `src/main/java/com/autofuellanka/systemmanager/model/Payment.java`
+    - `src/main/java/com/autofuellanka/systemmanager/model/PaymentMethod.java`
+  - DTO:
+    - `src/main/java/com/autofuellanka/systemmanager/dto/BookingcreateRequest.java`
+    - `src/main/java/com/autofuellanka/systemmanager/dto/BookingDTO.java`
+    - `src/main/java/com/autofuellanka/systemmanager/dto/FeedbackDTO.java`
+  - Repository:
+    - `src/main/java/com/autofuellanka/systemmanager/repository/BookingRepository.java`
+    - `src/main/java/com/autofuellanka/systemmanager/repository/CustomerRepository.java`
+    - `src/main/java/com/autofuellanka/systemmanager/repository/FeedbackRepository.java`
+  - Service:
+    - `src/main/java/com/autofuellanka/systemmanager/service/BookingValidationService.java` 
+    - `src/main/java/com/autofuellanka/systemmanager/service/FeedbackService.java`
 
 ---
 
@@ -74,8 +126,6 @@ Notes
     - `src/main/java/com/autofuellanka/systemmanager/controller/BillingController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/FinanceController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/PaymentGatewayController.java`
-  - Services (payment and invoice core):
-    - `src/main/java/com/autofuellanka/systemmanager/service/BillingService.java`
     - Strategy Pattern (payments):
       - `src/main/java/com/autofuellanka/systemmanager/service/payment/PaymentProcessor.java`
       - `src/main/java/com/autofuellanka/systemmanager/service/payment/PaymentStrategyFactory.java`
@@ -89,8 +139,15 @@ Notes
       - `src/main/java/com/autofuellanka/systemmanager/service/invoice/FuelOnlyInvoiceWorkflow.java`
     - PDF and reports:
       - `src/main/java/com/autofuellanka/systemmanager/service/InvoicePdfService.java`
+    - Model:
+      - `src/main/java/com/autofuellanka/systemmanager/Model/FinanceLedger.java`
+      - `src/main/java/com/autofuellanka/systemmanager/Model/Invoice.java`
+      - `src/main/java/com/autofuellanka/systemmanager/Model/InvoiceLine.java`
   - Repositories:
     - `InvoiceRepository.java`, `PaymentRepository.java`, `FinanceLedgerRepository.java`
+  - Service:
+    - `src/main/java/com/autofuellanka/systemmanager/service/InvoicePDFService.java`
+    - `src/main/java/com/autofuellanka/systemmanager/service/BillingService.java`
   - Models/Enums:
     - `Invoice`, `InvoiceLine`, `InvoiceStatus`, `InvoiceLineType`, `Payment`, `PaymentMethod`, `TransactionType`, `FinanceLedger`
 
@@ -107,6 +164,16 @@ Notes
     - `src/main/java/com/autofuellanka/systemmanager/controller/InventoryController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/StockMoveController.java`
     - `src/main/java/com/autofuellanka/systemmanager/controller/ServiceTypeController.java`
+  - Reports:
+    - `src/main/java/com/autofuellanka/systemmanager/controller/ReportController.java`
+  - Model:
+    - `src/main/java/com/autofuellanka/systemmanager/Model/InventoryItem.java`
+  - DTO:
+    - `src/main/java/com/autofuellanka/systemmanager/dto/ReportDTO.java`
+  - Repository:
+    - `src/main/java/com/autofuellanka/systemmanager/repository/InventoryRepository.java`
+  - Service:
+    - `src/main/java/com/autofuellanka/systemmanager/service/InventoryService.java`
 
 ---
 
