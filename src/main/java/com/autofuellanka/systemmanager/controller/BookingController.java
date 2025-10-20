@@ -34,7 +34,7 @@ public class BookingController {
     @Autowired
     private JobRepository jobRepo;
 
-    // ✅ GET all bookings (with serviceType eagerly fetched)
+    // GET all bookings (with serviceType eagerly fetched)
     @GetMapping
     public List<BookingDTO> getAll() {
         return repo.findAllWithServiceType()
@@ -43,7 +43,7 @@ public class BookingController {
                 .toList();
     }
 
-    // ✅ GET single booking by ID
+    // GET single booking by ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getOne(@PathVariable Long id) {
         return repo.findByIdWithServiceType(id)
@@ -51,14 +51,14 @@ public class BookingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ✅ POST create booking (fixed 500 bug)
+    // POST create booking (fixed 500 bug)
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Booking input) {
         try {
             // Save booking
             Booking saved = repo.save(input);
 
-            // 🔥 Re-fetch it with serviceType eagerly loaded
+            // Re-fetch it with serviceType eagerly loaded
             Booking full = repo.findByIdWithServiceType(saved.getId())
                     .orElse(saved);
 
@@ -79,7 +79,7 @@ public class BookingController {
         }
     }
 
-    // ✅ PUT update booking
+    // PUT update booking
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Booking input) {
         try {
@@ -108,7 +108,7 @@ public class BookingController {
         }
     }
 
-    // ✅ DELETE booking with proper foreign key handling
+    // DELETE booking with proper foreign key handling
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {

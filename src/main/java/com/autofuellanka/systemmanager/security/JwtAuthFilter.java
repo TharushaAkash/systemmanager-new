@@ -29,10 +29,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (auth != null && auth.startsWith("Bearer ")) {
             try {
                 String token = auth.substring(7);
-                System.out.println("🔐 JWT Auth Filter - Processing token for URI: " + request.getRequestURI());
-                System.out.println("🔐 JWT Auth Filter - Token (first 50 chars): " + token.substring(0, Math.min(50, token.length())) + "...");
+                System.out.println("JWT Auth Filter - Processing token for URI: " + request.getRequestURI());
+                System.out.println("WT Auth Filter - Token (first 50 chars): " + token.substring(0, Math.min(50, token.length())) + "...");
                 Claims claims = jwt.parse(token);
-                System.out.println("🔐 JWT Auth Filter - All claims: " + claims);
+                System.out.println("JWT Auth Filter - All claims: " + claims);
 
                 // Extract user ID
                 String userId = claims.getSubject();
@@ -60,34 +60,34 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     roles = List.of();
                 }
 
-                System.out.println("🔐 JWT Auth Filter - Raw role claim: " + roleClaim);
-                System.out.println("🔐 JWT Auth Filter - Raw roles claim: " + rolesClaim);
-                System.out.println("🔐 JWT Auth Filter - Extracted roles: " + roles);
+                System.out.println("JWT Auth Filter - Raw role claim: " + roleClaim);
+                System.out.println("JWT Auth Filter - Raw roles claim: " + rolesClaim);
+                System.out.println("JWT Auth Filter - Extracted roles: " + roles);
 
-                System.out.println("🔐 JWT Auth Filter - User ID: " + userId + ", Roles: " + roles);
+                System.out.println("JWT Auth Filter - User ID: " + userId + ", Roles: " + roles);
 
                 // Create authorities with ROLE_ prefix
                 var authorities = roles.stream()
                         .map(role -> {
                             String authority = "ROLE_" + role.toUpperCase();
-                            System.out.println("🔐 Creating authority: " + authority);
+                            System.out.println("Creating authority: " + authority);
                             return new SimpleGrantedAuthority(authority);
                         })
                         .collect(Collectors.toList());
 
-                System.out.println("🔐 JWT Auth Filter - Created authorities: " + authorities);
-                System.out.println("🔐 JWT Auth Filter - Authority strings: " + authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toList()));
+                System.out.println("JWT Auth Filter - Created authorities: " + authorities);
+                System.out.println("JWT Auth Filter - Authority strings: " + authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toList()));
 
                 var authToken = new UsernamePasswordAuthenticationToken(userId, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                System.out.println("✅ JWT Authentication successful for user: " + userId);
-                System.out.println("✅ Security context set with authorities: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                System.out.println("JWT Authentication successful for user: " + userId);
+                System.out.println("Security context set with authorities: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
             } catch (Exception e) {
-                System.out.println("❌ JWT Authentication failed: " + e.getMessage());
+                System.out.println("JWT Authentication failed: " + e.getMessage());
                 // Don't throw exception, just continue without authentication
             }
         } else {
-            System.out.println("⚠️ No Authorization header found for: " + request.getRequestURI());
+            System.out.println("⚠No Authorization header found for: " + request.getRequestURI());
         }
         filterChain.doFilter(request, response);
     }

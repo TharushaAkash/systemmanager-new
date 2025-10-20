@@ -38,7 +38,7 @@ public class AuthController {
         
         return users.findByEmailAndPassword(req.getEmail(), req.getPassword())
                 .map(u -> {
-                    System.out.println("✅ Login successful for user: " + u.getEmail());
+                    System.out.println("Login successful for user: " + u.getEmail());
                     String token = jwt.generateToken(String.valueOf(u.getId()), Map.of(
                             "role", u.getRole(),
                             "email", u.getEmail()
@@ -50,7 +50,7 @@ public class AuthController {
                     ));
                 })
                 .orElseGet(() -> {
-                    System.out.println("❌ Login failed - no user found with email and password");
+                    System.out.println("Login failed - no user found with email and password");
                     return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
                 });
     }

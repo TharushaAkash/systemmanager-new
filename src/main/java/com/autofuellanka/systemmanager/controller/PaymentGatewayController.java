@@ -42,7 +42,7 @@ public class PaymentGatewayController {
         try {
             // Validate request
             if (request.getBookingId() == null) {
-                System.out.println("❌ ERROR: Booking ID is null");
+                System.out.println("ERROR: Booking ID is null");
                 return ResponseEntity.badRequest().body("Booking ID is required");
             }
             if (request.getSubtotal() == null || request.getSubtotal() < 0) {
@@ -56,27 +56,27 @@ public class PaymentGatewayController {
             }
 
             // Check if booking exists
-            System.out.println("🔍 Checking if booking exists: " + request.getBookingId());
+            System.out.println("Checking if booking exists: " + request.getBookingId());
             boolean bookingExists = bookingRepository.existsById(request.getBookingId());
             System.out.println("Booking exists: " + bookingExists);
 
             if (!bookingExists) {
-                System.out.println("❌ ERROR: Booking not found with ID: " + request.getBookingId());
+                System.out.println("ERROR: Booking not found with ID: " + request.getBookingId());
                 return ResponseEntity.badRequest().body("Booking not found with ID: " + request.getBookingId());
             }
 
             // Check if invoice already exists for this booking
-            System.out.println("🔍 Checking for existing invoices for booking: " + request.getBookingId());
+            System.out.println("Checking for existing invoices for booking: " + request.getBookingId());
             List<Invoice> existingInvoices = invoiceRepository.findByBookingId(request.getBookingId());
             System.out.println("Existing invoices count: " + existingInvoices.size());
 
             if (!existingInvoices.isEmpty()) {
-                System.out.println("❌ ERROR: Invoice already exists for booking: " + request.getBookingId());
+                System.out.println("ERROR: Invoice already exists for booking: " + request.getBookingId());
                 return ResponseEntity.badRequest().body("Invoice already exists for booking: " + request.getBookingId());
             }
 
             // Create invoice with null safety
-            System.out.println("🔍 Creating invoice...");
+            System.out.println("Creating invoice...");
             Invoice invoice = new Invoice();
             invoice.setBookingId(request.getBookingId());
 
@@ -90,7 +90,7 @@ public class PaymentGatewayController {
             invoice.setCreatedAt(LocalDateTime.now());
             invoice.setDueDate(LocalDateTime.now().plusDays(30));
 
-            System.out.println("🔍 Invoice object created:");
+            System.out.println("Invoice object created:");
             System.out.println("- Booking ID: " + invoice.getBookingId());
             System.out.println("- Invoice Number: " + invoice.getInvoiceNumber());
             System.out.println("- Subtotal: " + invoice.getSubtotal());
@@ -98,24 +98,24 @@ public class PaymentGatewayController {
             System.out.println("- Total Amount: " + invoice.getTotalAmount());
             System.out.println("- Status: " + invoice.getStatus());
 
-            System.out.println("🔍 Saving invoice to database...");
+            System.out.println("Saving invoice to database...");
             Invoice savedInvoice = invoiceRepository.save(invoice);
-            System.out.println("✅ Invoice saved successfully!");
+            System.out.println("Invoice saved successfully!");
             System.out.println("Saved Invoice ID: " + savedInvoice.getId());
             System.out.println("Saved Invoice: " + savedInvoice);
 
             return ResponseEntity.ok(savedInvoice);
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ VALIDATION ERROR: " + e.getMessage());
+            System.out.println("VALIDATION ERROR: " + e.getMessage());
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            System.out.println("❌ DATABASE CONSTRAINT VIOLATION: " + e.getMessage());
+            System.out.println("DATABASE CONSTRAINT VIOLATION: " + e.getMessage());
             return ResponseEntity.badRequest().body("Database constraint violation: " + e.getMessage());
         } catch (org.springframework.dao.OptimisticLockingFailureException e) {
-            System.out.println("❌ CONCURRENT MODIFICATION: " + e.getMessage());
+            System.out.println("CONCURRENT MODIFICATION: " + e.getMessage());
             return ResponseEntity.status(409).body("Concurrent modification detected. Please try again.");
         } catch (Exception e) {
-            System.out.println("❌ UNEXPECTED ERROR: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.out.println("UNEXPECTED ERROR: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
         }
@@ -125,7 +125,7 @@ public class PaymentGatewayController {
     @PostMapping("/payments")
     @Transactional
     public ResponseEntity<?> processPayment(@RequestBody PaymentRequest request) {
-        System.out.println("🔍 NEW PAYMENT FLOW DEBUG:");
+        System.out.println("NEW PAYMENT FLOW DEBUG:");
         System.out.println("Request received: " + request);
         System.out.println("Booking ID: " + request.getBookingId());
         System.out.println("Method: " + request.getMethod());
@@ -137,7 +137,7 @@ public class PaymentGatewayController {
         try {
             // Validate request
             if (request.getBookingId() == null || request.getBookingId() <= 0) {
-                System.out.println("❌ ERROR: Booking ID is null or invalid");
+                System.out.println(" ERROR: Booking ID is null or invalid");
                 return ResponseEntity.badRequest().body("Valid booking ID is required");
             }
             if (request.getAmount() == null || request.getAmount() <= 0) {
@@ -156,20 +156,20 @@ public class PaymentGatewayController {
             }
 
             // Check if booking exists
-            System.out.println("🔍 Checking if booking exists: " + request.getBookingId());
+            System.out.println("Checking if booking exists: " + request.getBookingId());
             Optional<Booking> bookingOpt = bookingRepository.findById(request.getBookingId());
             System.out.println("Booking found: " + bookingOpt.isPresent());
 
             if (bookingOpt.isEmpty()) {
-                System.out.println("❌ ERROR: Booking not found with ID: " + request.getBookingId());
+                System.out.println("ERROR: Booking not found with ID: " + request.getBookingId());
                 return ResponseEntity.badRequest().body("Booking not found with ID: " + request.getBookingId());
             }
 
             Booking booking = bookingOpt.get();
-            System.out.println("✅ Booking found: " + booking.getId() + " - " + booking.getType());
+            System.out.println("Booking found: " + booking.getId() + " - " + booking.getType());
 
             // Create invoice first
-            System.out.println("🔍 Creating invoice...");
+            System.out.println("Creating invoice...");
             Invoice invoice = new Invoice();
             invoice.setBookingId(booking.getId());
             invoice.setSubtotal(request.getAmount() / 1.15); // Calculate subtotal (remove 15% tax)
@@ -181,7 +181,7 @@ public class PaymentGatewayController {
             invoice.setCreatedAt(LocalDateTime.now());
             invoice.setDueDate(LocalDateTime.now().plusDays(30));
 
-            System.out.println("🔍 Invoice details:");
+            System.out.println("Invoice details:");
             System.out.println("- Booking ID: " + invoice.getBookingId());
             System.out.println("- Subtotal: " + invoice.getSubtotal());
             System.out.println("- Tax Amount: " + invoice.getTaxAmount());
@@ -193,16 +193,16 @@ public class PaymentGatewayController {
             Invoice savedInvoice;
             try {
                 savedInvoice = invoiceRepository.save(invoice);
-                System.out.println("✅ Invoice created successfully! ID: " + savedInvoice.getId());
+                System.out.println("Invoice created successfully! ID: " + savedInvoice.getId());
             } catch (Exception e) {
-                System.out.println("❌ ERROR creating invoice: " + e.getMessage());
-                System.out.println("❌ Exception type: " + e.getClass().getSimpleName());
+                System.out.println("ERROR creating invoice: " + e.getMessage());
+                System.out.println("Exception type: " + e.getClass().getSimpleName());
                 e.printStackTrace();
                 return ResponseEntity.status(500).body("Failed to create invoice: " + e.getMessage());
             }
 
             // Now create payment with invoice reference
-            System.out.println("🔍 Creating payment...");
+            System.out.println("Creating payment...");
             Payment payment = new Payment();
             payment.setInvoice(savedInvoice); // Set the invoice first
             payment.setMethod(paymentMethod);
@@ -223,11 +223,11 @@ public class PaymentGatewayController {
             Payment savedPayment;
             try {
                 savedPayment = paymentRepository.save(payment);
-                System.out.println("✅ Payment saved successfully! ID: " + savedPayment.getId());
+                System.out.println("Payment saved successfully! ID: " + savedPayment.getId());
             } catch (Exception e) {
-                System.out.println("❌ ERROR saving payment: " + e.getMessage());
-                System.out.println("❌ Exception type: " + e.getClass().getSimpleName());
-                System.out.println("❌ Root cause: " + (e.getCause() != null ? e.getCause().getMessage() : "No root cause"));
+                System.out.println("ERROR saving payment: " + e.getMessage());
+                System.out.println("Exception type: " + e.getClass().getSimpleName());
+                System.out.println("Root cause: " + (e.getCause() != null ? e.getCause().getMessage() : "No root cause"));
                 e.printStackTrace();
                 return ResponseEntity.status(500).body("Failed to save payment: " + e.getMessage());
             }
@@ -239,9 +239,9 @@ public class PaymentGatewayController {
 
             try {
                 savedInvoice = invoiceRepository.save(savedInvoice);
-                System.out.println("✅ Invoice updated. New status: " + savedInvoice.getStatus());
+                System.out.println("Invoice updated. New status: " + savedInvoice.getStatus());
             } catch (Exception e) {
-                System.out.println("❌ ERROR updating invoice: " + e.getMessage());
+                System.out.println("ERROR updating invoice: " + e.getMessage());
                 e.printStackTrace();
                 // Don't fail the transaction for this
             }
@@ -253,16 +253,16 @@ public class PaymentGatewayController {
                     "message", "Payment processed and invoice created successfully"
             ));
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ VALIDATION ERROR in payment: " + e.getMessage());
+            System.out.println("VALIDATION ERROR in payment: " + e.getMessage());
             return ResponseEntity.badRequest().body("Validation error: " + e.getMessage());
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            System.out.println("❌ DATABASE CONSTRAINT VIOLATION in payment: " + e.getMessage());
+            System.out.println("DATABASE CONSTRAINT VIOLATION in payment: " + e.getMessage());
             return ResponseEntity.badRequest().body("Database constraint violation: " + e.getMessage());
         } catch (org.springframework.dao.OptimisticLockingFailureException e) {
-            System.out.println("❌ CONCURRENT MODIFICATION in payment: " + e.getMessage());
+            System.out.println("CONCURRENT MODIFICATION in payment: " + e.getMessage());
             return ResponseEntity.status(409).body("Concurrent modification detected. Please try again.");
         } catch (Exception e) {
-            System.out.println("❌ UNEXPECTED ERROR in payment: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.out.println("UNEXPECTED ERROR in payment: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }

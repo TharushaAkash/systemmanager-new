@@ -129,9 +129,6 @@ public class FinanceController {
         LocalDateTime startDate = from != null ? from : LocalDateTime.now().withDayOfMonth(1);
         LocalDateTime endDate = to != null ? to : LocalDateTime.now();
 
-        // Account balances are not relevant for this calculation
-        // We only need revenue, expenses, and net income
-
         // Get correct totals:
         // 1. Total Revenue = Sum of all paid amounts from invoices (what customers actually paid)
         Double totalRevenue = invoiceRepository.getTotalRevenue();
@@ -141,8 +138,7 @@ public class FinanceController {
         
         // 3. Net Income = Revenue - Inventory Expenses
         Double netIncome = totalRevenue - totalInventoryExpenses;
-        
-        // Cash flow is not relevant for this calculation
+
         Double cashFlow = 0.0;
 
         summary.setTotalDebits(totalInventoryExpenses);
