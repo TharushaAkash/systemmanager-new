@@ -2,6 +2,8 @@ package com.autofuellanka.systemmanager.service;
 
 import com.autofuellanka.systemmanager.model.*;
 import com.autofuellanka.systemmanager.repository.*;
+import com.autofuellanka.systemmanager.service.payment.PaymentProcessor;
+import com.autofuellanka.systemmanager.service.payment.PaymentProcessingResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,9 @@ public class BillingService {
 
     @Autowired
     private FuelPricingService fuelPricingService;
+
+    @Autowired
+    private PaymentProcessor paymentProcessor;
 
 
     public Invoice createInvoiceFromBooking(Long bookingId) {
@@ -129,6 +134,18 @@ public class BillingService {
         payment.setNotes(notes);
         payment.setCreatedBy(createdBy);
 
+        // Use Strategy Pattern to process payment
+        PaymentProcessingResult processingResult = paymentProcessor.processPayment(payment);
+        
+        if (!processingResult.isSuccess()) {
+            throw new IllegalArgumentException("Payment processing failed: " + processingResult.getMessage());
+        }
+
+        // Update payment with transaction ID if available
+        if (processingResult.getTransactionId() != null) {
+            payment.setReference(processingResult.getTransactionId());
+        }
+
         Payment savedPayment = paymentRepository.save(payment);
 
         // Update invoice
@@ -136,7 +153,7 @@ public class BillingService {
         invoice.calculateBalance();
         invoiceRepository.save(invoice);
 
-        // Create ledger entries
+        // Create ledger entries using strategy-based account names
         createPaymentLedgerEntries(savedPayment);
 
         return savedPayment;
@@ -201,8 +218,8 @@ public class BillingService {
     }
 
     private void createPaymentLedgerEntries(Payment payment) {
-        // Debit: Cash/Card/Online account
-        String accountName = getAccountNameForPaymentMethod(payment.getMethod());
+        // Debit: Cash/Card/Online account (using Strategy Pattern)
+        String accountName = paymentProcessor.getAccountNameForPaymentMethod(payment.getMethod());
         
         FinanceLedger debitEntry = new FinanceLedger();
         debitEntry.setTransactionDate(payment.getCreatedAt());
@@ -238,8 +255,8 @@ public class BillingService {
         debitEntry.setCreatedBy(refund.getCreatedBy());
         financeLedgerRepository.save(debitEntry);
 
-        // Credit: Cash account (decrease cash)
-        String accountName = getAccountNameForPaymentMethod(refund.getMethod());
+        // Credit: Cash account (decrease cash) - using Strategy Pattern
+        String accountName = paymentProcessor.getAccountNameForPaymentMethod(refund.getMethod());
         
         FinanceLedger creditEntry = new FinanceLedger();
         creditEntry.setTransactionDate(refund.getCreatedAt());
@@ -252,12 +269,4 @@ public class BillingService {
         financeLedgerRepository.save(creditEntry);
     }
 
-    private String getAccountNameForPaymentMethod(PaymentMethod method) {
-        switch (method) {
-            case CASH: return "CASH";
-            case CARD: return "CARD_PAYMENTS";
-            case ONLINE: return "ONLINE_PAYMENTS";
-            default: return "CASH";
-        }
-    }
 }
