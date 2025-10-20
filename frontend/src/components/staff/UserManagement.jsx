@@ -416,7 +416,6 @@ export default function UserManagement() {
                             <option value="all">All Users</option>
                             <option value="ADMIN">👑 Admins</option>
                             <option value="STAFF">👨‍💼 Staff</option>
-                            <option value="TECHNICIAN">🔧 Technicians</option>
                             <option value="FINANCE">💰 Finance</option>
                             <option value="CUSTOMER">👤 Customers</option>
                             <option value="MANAGER">🤵 Manager</option>
@@ -725,7 +724,6 @@ export default function UserManagement() {
                             >
                                 <option value="CUSTOMER">👤 Customer</option>
                                 <option value="STAFF">👨‍💼 Staff</option>
-                                <option value="TECHNICIAN">🔧 Technician</option>
                                 <option value="FINANCE">💰 Finance</option>
                                 <option value="ADMIN">👑 Admin</option>
                                 <option value="MANAGER">🤵 Manager</option>
