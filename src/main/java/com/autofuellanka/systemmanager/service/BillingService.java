@@ -31,86 +31,26 @@ public class BillingService {
     private FuelPricingService fuelPricingService;
 
     @Autowired
+    private com.autofuellanka.systemmanager.service.invoice.BookingInvoiceWorkflow bookingInvoiceWorkflow;
+
+    @Autowired
+    private com.autofuellanka.systemmanager.service.invoice.FuelOnlyInvoiceWorkflow fuelOnlyInvoiceWorkflow;
+
+    @Autowired
     private PaymentProcessor paymentProcessor;
 
 
     public Invoice createInvoiceFromBooking(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found: " + bookingId));
-
-        // Check if invoice already exists for this booking
-        List<Invoice> existingInvoices = invoiceRepository.findByBookingId(bookingId);
-        if (!existingInvoices.isEmpty()) {
-            throw new IllegalArgumentException("Invoice already exists for booking: " + bookingId);
-        }
-
-        Invoice invoice = new Invoice();
-        invoice.setBookingId(bookingId);
-        invoice.setDueDate(LocalDateTime.now().plusDays(30)); // 30 days from now
-
-        // Create invoice lines from booking
-        createInvoiceLinesFromBooking(invoice, booking);
-
-        // Calculate totals
-        calculateInvoiceTotals(invoice);
-
-        Invoice savedInvoice = invoiceRepository.save(invoice);
-
-        // Create ledger entries
-        createInvoiceLedgerEntries(savedInvoice);
-
-        return savedInvoice;
+        return bookingInvoiceWorkflow.process(bookingId);
     }
 
-    private void createInvoiceLinesFromBooking(Invoice invoice, Booking booking) {
-        // Add service line
-        if (booking.getServiceType() != null) {
-            InvoiceLine serviceLine = new InvoiceLine();
-            serviceLine.setInvoice(invoice);
-            serviceLine.setType(InvoiceLineType.SERVICE);
-            serviceLine.setReferenceId(booking.getServiceTypeId());
-            serviceLine.setDescription(booking.getServiceType().getName());
-            serviceLine.setQuantity(1);
-            serviceLine.setUnitPrice(booking.getServiceType().getPrice() != null ? booking.getServiceType().getPrice() : 0.0);
-            serviceLine.calculateLineTotal();
-        }
-
-        // Add fuel line if fuel was requested
-        if (booking.getLitersRequested() != null && booking.getLitersRequested() > 0 && booking.getFuelType() != null) {
-            InvoiceLine fuelLine = new InvoiceLine();
-            fuelLine.setInvoice(invoice);
-            fuelLine.setType(InvoiceLineType.PART);
-            fuelLine.setDescription("Fuel - " + booking.getFuelType());
-            fuelLine.setQuantity(booking.getLitersRequested().intValue());
-            
-            // Get fuel price from FuelPricingService
-            // Convert String fuelType to FuelType enum
-            FuelType fuelTypeEnum = FuelType.valueOf(booking.getFuelType());
-            Double pricePerLiter = fuelPricingService.getPricePerLiter(fuelTypeEnum);
-            fuelLine.setUnitPrice(pricePerLiter);
-            fuelLine.calculateLineTotal();
-        }
+    public Invoice createFuelOnlyInvoiceFromBooking(Long bookingId) {
+        return fuelOnlyInvoiceWorkflow.process(bookingId);
     }
 
-    private void calculateInvoiceTotals(Invoice invoice) {
-        Double subtotal = 0.0;
-        
-        if (invoice.getInvoiceLines() != null) {
-            for (InvoiceLine line : invoice.getInvoiceLines()) {
-                subtotal += line.getLineTotal();
-            }
-        }
+    private void createInvoiceLinesFromBooking(Invoice invoice, Booking booking) { }
 
-        invoice.setSubtotal(subtotal);
-        
-        // Calculate tax (15% VAT)
-        Double taxAmount = subtotal * 0.15;
-        invoice.setTaxAmount(taxAmount);
-        
-        // Calculate total
-        invoice.setTotalAmount(subtotal + taxAmount);
-        invoice.setBalance(invoice.getTotalAmount());
-    }
+    private void calculateInvoiceTotals(Invoice invoice) { }
 
     public Payment recordPayment(Long invoiceId, Double amount, PaymentMethod method, 
                                String reference, String notes, String createdBy) {
@@ -193,29 +133,7 @@ public class BillingService {
         return savedRefund;
     }
 
-    private void createInvoiceLedgerEntries(Invoice invoice) {
-        // Debit: Accounts Receivable
-        FinanceLedger debitEntry = new FinanceLedger();
-        debitEntry.setTransactionDate(invoice.getCreatedAt());
-        debitEntry.setAccount("ACCOUNTS_RECEIVABLE");
-        debitEntry.setTransactionType(TransactionType.DEBIT);
-        debitEntry.setAmount(invoice.getTotalAmount());
-        debitEntry.setReference(invoice.getInvoiceNumber());
-        debitEntry.setDescription("Invoice created for booking " + invoice.getBookingId());
-        debitEntry.setCreatedBy("system");
-        financeLedgerRepository.save(debitEntry);
-
-        // Credit: Revenue
-        FinanceLedger creditEntry = new FinanceLedger();
-        creditEntry.setTransactionDate(invoice.getCreatedAt());
-        creditEntry.setAccount("REVENUE");
-        creditEntry.setTransactionType(TransactionType.CREDIT);
-        creditEntry.setAmount(invoice.getTotalAmount());
-        creditEntry.setReference(invoice.getInvoiceNumber());
-        creditEntry.setDescription("Revenue from invoice " + invoice.getInvoiceNumber());
-        creditEntry.setCreatedBy("system");
-        financeLedgerRepository.save(creditEntry);
-    }
+    private void createInvoiceLedgerEntries(Invoice invoice) { }
 
     private void createPaymentLedgerEntries(Payment payment) {
         // Debit: Cash/Card/Online account (using Strategy Pattern)
