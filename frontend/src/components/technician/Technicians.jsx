@@ -517,73 +517,442 @@ export default function Technicians() {
                 )}
             </div>
 
-            {/* Modal */}
+            {/* Simple Attractive Modal */}
             {showModal && (
                 <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.4)', zIndex: 1000,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    position: 'fixed', 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', 
+                    zIndex: 1000,
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center'
                 }}>
-                    <div style={{ background: 'white', borderRadius: '20px', width: '780px', maxWidth: '95vw', padding: '28px', boxShadow: '0 24px 60px rgba(26,115,232,0.25)', border: '1px solid #eef1f6' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ 
+                        background: 'white', 
+                        borderRadius: '16px', 
+                        width: '600px', 
+                        maxWidth: '95vw', 
+                        padding: '0',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.15)', 
+                        border: '1px solid #e1e5e9',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Simple Header */}
+                        <div style={{ 
+                            background: '#1a73e8',
+                            padding: '24px',
+                            color: 'white'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <div style={{ fontSize: '18px', fontWeight: 700 }}>{isEdit ? 'Edit Technician' : 'Add Technician'}</div>
-                                <div style={{ fontSize: '12px', color: '#6c757d' }}>Manage basic details used in jobs and assignments</div>
+                                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>
+                                        {isEdit ? '✏️ Edit Technician' : '👨‍🔧 Add Technician'}
+                                    </h2>
+                                    <p style={{ margin: '4px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
+                                        {isEdit ? 'Update technician details' : 'Create new technician account'}
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={closeModal} 
+                                    disabled={saving}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.2)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        width: '36px',
+                                        height: '36px',
+                                        color: 'white',
+                                        fontSize: '16px',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
+                                    onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                                >
+                                    ✕
+                                </button>
                             </div>
-                            <button className="btn btn-sm" onClick={closeModal} disabled={saving} aria-label="Close">✕</button>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+
+                        {/* Form Content */}
+                        <div style={{ padding: '32px' }}>
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(2, 1fr)', 
+                                gap: '20px',
+                                marginBottom: '24px'
+                            }}>
                             <div>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>First name</label>
-                                <input name="firstName" value={form.firstName} onChange={handleChange} className="form-control" placeholder="e.g. Nimal" />
-                                {fieldErrors.firstName && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.firstName}</div>}
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        First Name *
+                                    </label>
+                                    <input 
+                                        name="firstName" 
+                                        value={form.firstName} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="Enter first name" 
+                                    />
+                                    {fieldErrors.firstName && (
+                                        <div style={{ 
+                                            color: '#ef4444', 
+                                            fontSize: '12px', 
+                                            marginTop: '4px'
+                                        }}>
+                                            {fieldErrors.firstName}
+                                        </div>
+                                    )}
                             </div>
+                                
                             <div>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>Last name</label>
-                                <input name="lastName" value={form.lastName} onChange={handleChange} className="form-control" placeholder="e.g. Perera" />
-                                {fieldErrors.lastName && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.lastName}</div>}
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        Last Name *
+                                    </label>
+                                    <input 
+                                        name="lastName" 
+                                        value={form.lastName} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="Enter last name" 
+                                    />
+                                    {fieldErrors.lastName && (
+                                        <div style={{ 
+                                            color: '#ef4444', 
+                                            fontSize: '12px', 
+                                            marginTop: '4px'
+                                        }}>
+                                            {fieldErrors.lastName}
                             </div>
-                            <div style={{ gridColumn: '1 / -1' }}>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>Email</label>
-                                <input name="email" type="email" value={form.email} onChange={handleChange} className="form-control" placeholder="name@example.com" />
-                                {fieldErrors.email && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.email}</div>}
+                                    )}
                             </div>
-                            {!isEdit && (
+                                
                                 <div style={{ gridColumn: '1 / -1' }}>
-                                    <label style={{ fontSize: 12, color: '#6c757d' }}>Password</label>
-                                    <input name="password" type="password" value={form.password} onChange={handleChange} className="form-control" placeholder="min 6 characters" />
-                                    {fieldErrors.password && <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 4 }}>{fieldErrors.password}</div>}
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        Email Address *
+                                    </label>
+                                    <input 
+                                        name="email" 
+                                        type="email" 
+                                        value={form.email} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="technician@example.com" 
+                                    />
+                                    {fieldErrors.email && (
+                                        <div style={{ 
+                                            color: '#ef4444', 
+                                            fontSize: '12px', 
+                                            marginTop: '4px'
+                                        }}>
+                                            {fieldErrors.email}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {!isEdit && (
+                                    <div style={{ gridColumn: '1 / -1' }}>
+                                        <label style={{ 
+                                            fontSize: '14px', 
+                                            color: '#374151', 
+                                            fontWeight: '500',
+                                            marginBottom: '8px',
+                                            display: 'block'
+                                        }}>
+                                            Password *
+                                        </label>
+                                        <input 
+                                            name="password" 
+                                            type="password" 
+                                            value={form.password} 
+                                            onChange={handleChange} 
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px 16px',
+                                                borderRadius: '8px',
+                                                fontSize: '14px',
+                                                border: '2px solid #e5e7eb',
+                                                outline: 'none',
+                                                transition: 'border-color 0.2s ease'
+                                            }}
+                                            onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                            placeholder="Minimum 6 characters" 
+                                        />
+                                        {fieldErrors.password && (
+                                            <div style={{ 
+                                                color: '#ef4444', 
+                                                fontSize: '12px', 
+                                                marginTop: '4px'
+                                            }}>
+                                                {fieldErrors.password}
+                                            </div>
+                                        )}
                                 </div>
                             )}
+
                             <div>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>Phone</label>
-                                <input name="phone" value={form.phone} onChange={handleChange} className="form-control" placeholder="077xxxxxxx" />
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        Phone Number
+                                    </label>
+                                    <input 
+                                        name="phone" 
+                                        value={form.phone} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="0771234567" 
+                                    />
                             </div>
+                                
                             <div>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>Role</label>
-                                <select name="role" value={form.role} onChange={handleChange} className="form-control">
-                                    <option value="TECHNICIAN">TECHNICIAN</option>
-                                    <option value="STAFF">STAFF</option>
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        Role
+                                    </label>
+                                    <select 
+                                        name="role" 
+                                        value={form.role} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            backgroundColor: 'white',
+                                            cursor: 'pointer',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                    >
+                                        <option value="TECHNICIAN">Technician</option>
+                                        <option value="STAFF">Staff</option>
                                 </select>
                             </div>
+                                
                             <div style={{ gridColumn: '1 / -1' }}>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>Address</label>
-                                <input name="address" value={form.address} onChange={handleChange} className="form-control" placeholder="Street address" />
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        Address
+                                    </label>
+                                    <input 
+                                        name="address" 
+                                        value={form.address} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="Street address" 
+                                    />
                             </div>
+                                
                             <div>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>City</label>
-                                <input name="city" value={form.city} onChange={handleChange} className="form-control" placeholder="City" />
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        City
+                                    </label>
+                                    <input 
+                                        name="city" 
+                                        value={form.city} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="City" 
+                                    />
                             </div>
+                                
                             <div>
-                                <label style={{ fontSize: 12, color: '#6c757d' }}>Postal code</label>
-                                <input name="postalCode" value={form.postalCode} onChange={handleChange} className="form-control" placeholder="Postal code" />
+                                    <label style={{ 
+                                        fontSize: '14px', 
+                                        color: '#374151', 
+                                        fontWeight: '500',
+                                        marginBottom: '8px',
+                                        display: 'block'
+                                    }}>
+                                        Postal Code
+                                    </label>
+                                    <input 
+                                        name="postalCode" 
+                                        value={form.postalCode} 
+                                        onChange={handleChange} 
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            border: '2px solid #e5e7eb',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s ease'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#1a73e8'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        placeholder="Postal code" 
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '22px' }}>
-                            <div style={{ fontSize: 12, color: '#6c757d' }}>Role will remain TECHNICIAN for this screen</div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button className="btn btn-secondary" onClick={closeModal} disabled={saving}>Cancel</button>
-                                <button className="btn btn-primary" onClick={saveTechnician} disabled={saving} style={{ boxShadow:'0 8px 20px rgba(26,115,232,0.25)' }}>{saving ? 'Saving...' : (isEdit ? 'Save Changes' : 'Create Technician')}</button>
+
+                            {/* Simple Footer */}
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'flex-end', 
+                                gap: '12px',
+                                paddingTop: '16px',
+                                borderTop: '1px solid #e5e7eb'
+                            }}>
+                                <button 
+                                    onClick={closeModal} 
+                                    disabled={saving}
+                                    style={{
+                                        padding: '10px 20px',
+                                        borderRadius: '8px',
+                                        border: '2px solid #d1d5db',
+                                        background: 'white',
+                                        color: '#6b7280',
+                                        fontSize: '14px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.borderColor = '#9ca3af';
+                                        e.target.style.color = '#374151';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.borderColor = '#d1d5db';
+                                        e.target.style.color = '#6b7280';
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={saveTechnician} 
+                                    disabled={saving}
+                                    style={{ 
+                                        padding: '10px 24px',
+                                        borderRadius: '8px',
+                                        background: '#1a73e8',
+                                        color: 'white',
+                                        border: 'none',
+                                        fontSize: '14px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 2px 4px rgba(26, 115, 232, 0.2)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = '#1557b0';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                        e.target.style.boxShadow = '0 4px 8px rgba(26, 115, 232, 0.3)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = '#1a73e8';
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 2px 4px rgba(26, 115, 232, 0.2)';
+                                    }}
+                                >
+                                    {saving ? 'Saving...' : (isEdit ? 'Save Changes' : 'Create Technician')}
+                                </button>
                             </div>
                         </div>
                     </div>

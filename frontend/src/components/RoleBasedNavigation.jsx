@@ -72,10 +72,12 @@ export default function RoleBasedNavigation({ onNavigate, currentPage }) {
             );
         }
 
-        // Staff: keep only Operations Dashboard in the top nav
+        // Staff: include appropriate navigation items in the top nav
         if (user?.role === "STAFF") {
             items.push(
-                { key: "operations-dashboard", label: "Operations Dashboard", roles: ["STAFF"] }
+                { key: "operations-dashboard", label: "Operations Dashboard", roles: ["STAFF"] },
+                { key: "inventory", label: "Inventory", roles: ["STAFF"] },
+                { key: "bookings", label: "Bookings", roles: ["STAFF"] }
             );
         }
 

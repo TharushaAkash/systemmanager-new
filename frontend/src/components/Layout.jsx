@@ -659,8 +659,10 @@ export default function Layout({ onNavigate }) {
         const rolePages = {
             'CUSTOMER': ['home', 'my-vehicles', 'services', 'service-booking', 'payment-gateway', 'my-bookings', 'profile'],
             'TECHNICIAN': ['home', 'job-management', 'current-jobs', 'technicians', 'pending-jobs'],
+            'STAFF': ['home', 'operations-dashboard', 'inventory', 'bookings', 'vehicle-types', 'inventory-new'],
             'MANAGER': ['home', 'operations-dashboard', 'service-types', 'vehicles'],
             'FINANCE': ['home', 'invoices', 'invoice-detail', 'finance-ledger'],
+            'ADMIN': ['home', 'user-management', 'customers', 'operations-dashboard', 'inventory', 'bookings', 'service-types', 'vehicles', 'invoices', 'finance-ledger'],
         };
         
         const userPages = rolePages[user.role] || [];
