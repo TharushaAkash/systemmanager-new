@@ -53,12 +53,13 @@ export default function FinanceLedger({ onNavigate }) {
 
             debugToken(); // Debug token information
 
-            let url = `${API_BASE}/api/finance/ledger?page=${page}&size=${size}`;
+            let url = `${API_BASE}/api/finance/ledger?page=${page}&size=${size}&sortBy=transactionDate&sortDir=desc`;
 
             // Add filters to URL
             const params = new URLSearchParams();
-            if (filters.from) params.append("from", filters.from);
-            if (filters.to) params.append("to", filters.to);
+            // Backend expects ISO DATE_TIME; expand date-only inputs to full-day range
+            if (filters.from) params.append("from", `${filters.from}T00:00:00`);
+            if (filters.to) params.append("to", `${filters.to}T23:59:59`);
             if (filters.account) params.append("account", filters.account);
             if (filters.type) params.append("type", filters.type);
 
@@ -93,8 +94,10 @@ export default function FinanceLedger({ onNavigate }) {
             }
 
             const data = await res.json();
-            setEntries(data.content || data);
-            setTotalPages(data.totalPages || 0);
+            console.debug("Ledger API raw response:", data);
+            const items = Array.isArray(data) ? data : (Array.isArray(data.content) ? data.content : []);
+            setEntries(items);
+            setTotalPages(typeof data.totalPages === 'number' ? data.totalPages : (items.length > 0 ? 1 : 0));
         } catch (e) {
             console.error("Error loading entries:", e);
             setErr(String(e.message));
@@ -111,8 +114,8 @@ export default function FinanceLedger({ onNavigate }) {
             }
 
             const params = new URLSearchParams();
-            if (filters.from) params.append("from", filters.from);
-            if (filters.to) params.append("to", filters.to);
+            if (filters.from) params.append("from", `${filters.from}T00:00:00`);
+            if (filters.to) params.append("to", `${filters.to}T23:59:59`);
 
             const url = `${API_BASE}/api/finance/ledger/summary?${params.toString()}`;
             const res = await fetch(url, {
@@ -168,20 +171,20 @@ export default function FinanceLedger({ onNavigate }) {
 
     const applyFilters = () => {
         setPage(0);
-        loadEntries();
-        loadSummary();
+        // Reload handled by useEffect on `filters`
     };
 
     const clearFilters = () => {
         setFilters({ from: "", to: "", account: "", type: "" });
         setPage(0);
+        // Reload handled by useEffect on `filters`
     };
 
     const exportCSV = async () => {
         try {
             const params = new URLSearchParams();
-            if (filters.from) params.append("from", filters.from);
-            if (filters.to) params.append("to", filters.to);
+            if (filters.from) params.append("from", `${filters.from}T00:00:00`);
+            if (filters.to) params.append("to", `${filters.to}T23:59:59`);
             if (filters.account) params.append("account", filters.account);
 
             const url = `${API_BASE}/api/finance/ledger/export/csv?${params.toString()}`;
@@ -238,8 +241,15 @@ export default function FinanceLedger({ onNavigate }) {
 
         loadEntries();
         loadSummary();
-        loadAccounts();
-    }, [page, isAuthenticated]);
+    }, [page, filters]);
+
+    // Load accounts once on mount
+    useEffect(() => {
+        if (isAuthenticated()) {
+            loadAccounts();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Show loading or redirect if not authenticated
     if (!isAuthenticated()) {
@@ -345,6 +355,8 @@ export default function FinanceLedger({ onNavigate }) {
                     )}
                 </div>
             )}
+
+            {/* Revenue charts intentionally not displayed here */}
 
             {/* Account Balances */}
             {summary && summary.accountBalances && Object.keys(summary.accountBalances).length > 0 && (

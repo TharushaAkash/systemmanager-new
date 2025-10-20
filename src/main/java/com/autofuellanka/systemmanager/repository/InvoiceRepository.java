@@ -42,9 +42,13 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query("SELECT i FROM Invoice i WHERE i.invoiceNumber LIKE %:search% OR CAST(i.bookingId AS string) LIKE %:search% ORDER BY i.createdAt DESC")
     List<Invoice> searchInvoices(@Param("search") String search);
 
-    // Get total revenue by date range
+    // Get total revenue by date range (sum of paid amounts)
     @Query("SELECT COALESCE(SUM(i.paidAmount), 0) FROM Invoice i WHERE i.createdAt BETWEEN :startDate AND :endDate")
     Double getTotalRevenueByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    // Get total revenue (sum of all paid amounts from all invoices)
+    @Query("SELECT COALESCE(SUM(i.paidAmount), 0) FROM Invoice i")
+    Double getTotalRevenue();
 
     // Get outstanding balance
     @Query("SELECT COALESCE(SUM(i.balance), 0) FROM Invoice i WHERE i.status IN ('UNPAID', 'PARTIAL')")

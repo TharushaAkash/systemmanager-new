@@ -36,4 +36,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     // Delete payments by invoice ID
     void deleteByInvoiceId(Long invoiceId);
+
+    // Get daily paid amounts from payments table (more accurate for actual payment dates)
+    @Query("SELECT DATE(p.createdAt) as paymentDate, COALESCE(SUM(p.amount), 0) as dailyRevenue " +
+           "FROM Payment p " +
+           "WHERE p.createdAt BETWEEN :startDate AND :endDate " +
+           "GROUP BY DATE(p.createdAt) " +
+           "ORDER BY paymentDate ASC")
+    List<Object[]> getDailyPayments(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

@@ -3,6 +3,8 @@ package com.autofuellanka.systemmanager.controller;
 import com.autofuellanka.systemmanager.model.FinanceLedger;
 import com.autofuellanka.systemmanager.model.TransactionType;
 import com.autofuellanka.systemmanager.repository.FinanceLedgerRepository;
+import com.autofuellanka.systemmanager.repository.InvoiceRepository;
+import com.autofuellanka.systemmanager.repository.InventoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +28,12 @@ public class FinanceController {
 
     @Autowired
     private FinanceLedgerRepository financeLedgerRepository;
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
 
     @GetMapping("/ledger")
     public Page<FinanceLedger> getLedger(
@@ -121,24 +129,23 @@ public class FinanceController {
         LocalDateTime startDate = from != null ? from : LocalDateTime.now().withDayOfMonth(1);
         LocalDateTime endDate = to != null ? to : LocalDateTime.now();
 
-        // Get account balances
-        List<String> accounts = financeLedgerRepository.findDistinctAccounts();
-        for (String account : accounts) {
-            Double balance = financeLedgerRepository.getAccountBalance(account);
-            summary.addAccountBalance(account, balance);
-        }
+        // Account balances are not relevant for this calculation
+        // We only need revenue, expenses, and net income
 
-        // Get totals for period - Business logic: CREDIT=revenue, DEBIT=inventory expenses only
-        Double totalRevenue = financeLedgerRepository.getTotalRevenueForPeriod(startDate, endDate);
-        Double totalInventoryExpenses = financeLedgerRepository.getTotalInventoryExpensesForPeriod(startDate, endDate);
-        Double cashFlow = financeLedgerRepository.getCashFlowForPeriod(startDate, endDate);
+        // Get correct totals:
+        // 1. Total Revenue = Sum of all paid amounts from invoices (what customers actually paid)
+        Double totalRevenue = invoiceRepository.getTotalRevenue();
         
-        // For this business: DEBIT = inventory expenses only
-        Double totalExpenses = totalInventoryExpenses;
+        // 2. Inventory Expenses = Sum of (unit_price * on_hand) from inventory_items table
+        Double totalInventoryExpenses = inventoryRepository.getTotalInventoryValue();
         
-        Double netIncome = totalRevenue - totalExpenses;
+        // 3. Net Income = Revenue - Inventory Expenses
+        Double netIncome = totalRevenue - totalInventoryExpenses;
+        
+        // Cash flow is not relevant for this calculation
+        Double cashFlow = 0.0;
 
-        summary.setTotalDebits(totalExpenses);
+        summary.setTotalDebits(totalInventoryExpenses);
         summary.setTotalCredits(totalRevenue);
         summary.setNetAmount(netIncome);
         summary.setCashFlow(cashFlow);

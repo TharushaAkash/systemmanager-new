@@ -21,6 +21,9 @@ public class Job {
     private String notes;
     private LocalDateTime assignedAt = LocalDateTime.now();
     private LocalDateTime completedAt;
+    
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
 
     // Constructors
     public Job() {}
@@ -46,4 +49,7 @@ public class Job {
 
     public LocalDateTime getCompletedAt() { return completedAt; }
     public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+
+    public Boolean getDeleted() { return deleted; }
+    public void setDeleted(Boolean deleted) { this.deleted = deleted; }
 }

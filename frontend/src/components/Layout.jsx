@@ -1,5 +1,17 @@
 // src/components/Layout.jsx
 import { useEffect, useState } from "react";
+import { Line, Bar } from "react-chartjs-2";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Tooltip,
+    Legend
+} from "chart.js";
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend);
 import { useAuth } from "../contexts/AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleBasedNavigation from "./RoleBasedNavigation";
@@ -198,6 +210,7 @@ function Home({ onNavigate }) {
         day: 'numeric' 
     });
 
+
     return (
         <div style={{
             minHeight: "100vh",
@@ -367,6 +380,69 @@ function Home({ onNavigate }) {
                             <div style={{ fontSize: "0.9rem", color: "#6b7280" }}>Current Time</div>
                         </div>
                     </div>
+
+                    {/* Finance Revenue Charts on Finance Home */}
+                    {user?.role === "FINANCE" && (
+                        <div style={{ marginTop: "10px" }}>
+                            <h3 style={{ color: "#1f2937", margin: "0 0 12px 0", fontSize: "1.25rem", fontWeight: 600 }}>
+                                📈 Revenue from Invoices (last 30 days)
+                            </h3>
+                            {(() => {
+                                const map = {};
+                                for (const e of financeEntries) {
+                                    if (e.transactionType !== "CREDIT") continue;
+                                    const d = new Date(e.transactionDate).toISOString().slice(0, 10);
+                                    map[d] = (map[d] || 0) + (e.amount || 0);
+                                }
+                                const labels = Object.keys(map).sort();
+                                const values = labels.map(l => map[l]);
+                                const options = {
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: true },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: (ctx) => ` LKR ${Number(ctx.parsed.y ?? ctx.parsed).toLocaleString()}`
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        y: { ticks: { callback: (v) => `LKR ${Number(v).toLocaleString()}` } }
+                                    }
+                                };
+                                const lineData = {
+                                    labels,
+                                    datasets: [{
+                                        label: "Daily Revenue",
+                                        data: values,
+                                        borderColor: "#10b981",
+                                        backgroundColor: "rgba(16,185,129,0.2)",
+                                        tension: 0.35,
+                                        fill: true
+                                    }]
+                                };
+                                const barData = {
+                                    labels: labels.slice(-12),
+                                    datasets: [{
+                                        label: "Last 12 days",
+                                        data: values.slice(-12),
+                                        backgroundColor: "rgba(99,102,241,0.6)",
+                                        borderColor: "#6366f1"
+                                    }]
+                                };
+                                return (
+                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+                                        <div style={{ height: 240, background: "white", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12 }}>
+                                            {financeLoading ? <div>Loading charts...</div> : <Line data={lineData} options={options} />}
+                                        </div>
+                                        <div style={{ height: 240, background: "white", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12 }}>
+                                            {financeLoading ? <div>Loading charts...</div> : <Bar data={barData} options={options} />}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
                 </div>
 
                 {/* Action Buttons */}
@@ -1033,6 +1109,11 @@ export default function Layout({ onNavigate }) {
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* Finance revenue charts for Finance role */}
+                                {user?.role === "FINANCE" && (
+                                    <FinanceRevenueCharts />
+                                )}
                             </div>
                         )}
 
@@ -1069,6 +1150,88 @@ export default function Layout({ onNavigate }) {
                 </div>
             </div>
             )}
+        </div>
+    );
+}
+
+function FinanceRevenueCharts() {
+    const [revenueData, setRevenueData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    
+    useEffect(() => {
+        const load = async () => {
+            try {
+                setLoading(true);
+                const res = await fetch(`http://localhost:8080/api/billing/revenue/daily?days=30`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                setRevenueData(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error("Error loading revenue data:", error);
+                setRevenueData([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    // Process revenue data for charts
+    const map = {};
+    for (const item of revenueData) {
+        const date = item.date;
+        map[date] = (map[date] || 0) + (item.amount || 0);
+    }
+    const labels = Object.keys(map).sort();
+    const values = labels.map(l => map[l]);
+    const options = {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: true },
+            tooltip: {
+                callbacks: {
+                    label: (ctx) => ` LKR ${Number(ctx.parsed.y ?? ctx.parsed).toLocaleString()}`
+                }
+            }
+        },
+        scales: { y: { ticks: { callback: (v) => `LKR ${Number(v).toLocaleString()}` } } }
+    };
+    const lineData = {
+        labels,
+        datasets: [{
+            label: "Daily Paid Amount",
+            data: values,
+            borderColor: "#10b981",
+            backgroundColor: "rgba(16,185,129,0.2)",
+            tension: 0.35,
+            fill: true
+        }]
+    };
+    const barData = {
+        labels: labels.slice(-12),
+        datasets: [{
+            label: "Last 12 days",
+            data: values.slice(-12),
+            backgroundColor: "rgba(99,102,241,0.6)",
+            borderColor: "#6366f1"
+        }]
+    };
+
+    return (
+        <div style={{ marginTop: "2rem" }}>
+            <h3 style={{ color: "#1f2937", margin: "0 0 12px 0", fontSize: "1.25rem", fontWeight: 600 }}>
+                📈 Daily Paid Amounts from Invoices (last 30 days)
+            </h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+                <div style={{ height: 240, background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12 }}>
+                    {loading ? <div>Loading charts...</div> : <Line data={lineData} options={options} />}
+                </div>
+                <div style={{ height: 240, background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12 }}>
+                    {loading ? <div>Loading charts...</div> : <Bar data={barData} options={options} />}
+                </div>
+            </div>
         </div>
     );
 }

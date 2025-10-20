@@ -271,6 +271,33 @@ public class BillingController {
         return ResponseEntity.ok(summary);
     }
 
+    // Get daily revenue data for charts
+    @GetMapping("/revenue/daily")
+    public ResponseEntity<?> getDailyRevenue(
+            @RequestParam(defaultValue = "30") int days) {
+        try {
+            LocalDateTime endDate = LocalDateTime.now();
+            LocalDateTime startDate = endDate.minusDays(days);
+
+            // Get daily payments (more accurate as it tracks actual payment dates)
+            List<Object[]> dailyPayments = paymentRepository.getDailyPayments(startDate, endDate);
+            
+            // Convert to a more frontend-friendly format
+            List<DailyRevenueData> revenueData = dailyPayments.stream()
+                .map(row -> {
+                    DailyRevenueData data = new DailyRevenueData();
+                    data.setDate(row[0].toString()); // Date
+                    data.setAmount(((Number) row[1]).doubleValue()); // Amount
+                    return data;
+                })
+                .collect(java.util.stream.Collectors.toList());
+
+            return ResponseEntity.ok(revenueData);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching daily revenue: " + e.getMessage());
+        }
+    }
+
     // DTOs
     public static class InvoiceCreateRequest {
         private Long bookingId;
@@ -338,5 +365,16 @@ public class BillingController {
 
         public Double getMonthlyRevenue() { return monthlyRevenue; }
         public void setMonthlyRevenue(Double monthlyRevenue) { this.monthlyRevenue = monthlyRevenue; }
+    }
+
+    public static class DailyRevenueData {
+        private String date;
+        private Double amount;
+
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
+
+        public Double getAmount() { return amount; }
+        public void setAmount(Double amount) { this.amount = amount; }
     }
 }

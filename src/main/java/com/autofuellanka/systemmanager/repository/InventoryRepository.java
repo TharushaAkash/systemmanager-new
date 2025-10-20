@@ -26,4 +26,8 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, Long> 
     // Search by name or SKU
     @Query("SELECT i FROM InventoryItem i WHERE i.isActive = true AND (LOWER(i.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(i.sku) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<InventoryItem> searchByNameOrSku(@Param("search") String search);
+
+    // Get total inventory value (unit_price * on_hand for all active items)
+    @Query("SELECT COALESCE(SUM(i.unitPrice * i.onHand), 0) FROM InventoryItem i WHERE i.isActive = true")
+    Double getTotalInventoryValue();
 }
