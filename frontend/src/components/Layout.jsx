@@ -17,7 +17,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import RoleBasedNavigation from "./RoleBasedNavigation";
 import InventoryItems from "./staff/inventory";
 import NewInventoryItem from "./staff/NewInventoryItem";
-import StockMoves from "./staff/StockMoves";
 import VehicleTypes from "./staff/VehicleTypes";
 import OperationsDashboard from "./staff/OperationsDashboard";
 import InvoiceList from "./finance/InvoiceList";
@@ -660,10 +659,10 @@ export default function Layout({ onNavigate }) {
         const rolePages = {
             'CUSTOMER': ['home', 'my-vehicles', 'services', 'service-booking', 'payment-gateway', 'my-bookings', 'profile'],
             'TECHNICIAN': ['home', 'job-management', 'current-jobs', 'technicians', 'pending-jobs'],
-            'STAFF': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard'],
+            'STAFF': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'vehicle-types', 'operations-dashboard'],
             'MANAGER': ['home', 'operations-dashboard', 'service-types', 'vehicles'],
             'FINANCE': ['home', 'invoices', 'invoice-detail', 'finance-ledger'],
-            'ADMIN': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'inventory-moves', 'vehicle-types', 'operations-dashboard', 'invoices', 'invoice-detail', 'finance-ledger']
+            'ADMIN': ['home', 'user-management', 'customers', 'vehicles', 'bookings', 'service-types', 'inventory', 'inventory-new', 'vehicle-types', 'operations-dashboard', 'invoices', 'invoice-detail', 'finance-ledger']
         };
         
         const userPages = rolePages[user.role] || [];
@@ -1132,7 +1131,6 @@ export default function Layout({ onNavigate }) {
                         {page === "service-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole={["STAFF", "MANAGER"]}><ServiceTypes /></ProtectedRoute></div></section>}
                         {page === "inventory" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><InventoryItems onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "inventory-new" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><NewInventoryItem onNavigate={navigateTo} /></ProtectedRoute></div></section>}
-                        {page === "inventory-moves" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><StockMoves onNavigate={navigateTo} /></ProtectedRoute></div></section>}
                         {page === "vehicle-types" && <section className="section"><div className="container"><ProtectedRoute requiredRole="STAFF"><VehicleTypes /></ProtectedRoute></div></section>}
                         {page === "operations-dashboard" && <section className="section"><div className="container"><ProtectedRoute requiredRole={["STAFF", "MANAGER"]}><OperationsDashboard onNavigate={navigateTo} /></ProtectedRoute></div></section>}
 
