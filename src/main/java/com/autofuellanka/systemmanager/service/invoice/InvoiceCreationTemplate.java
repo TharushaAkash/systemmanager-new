@@ -2,10 +2,7 @@ package com.autofuellanka.systemmanager.service.invoice;
 
 import com.autofuellanka.systemmanager.model.Invoice;
 
-/**
- * Template Method base for creating invoices.
- * Subclasses implement the variable steps while this class defines the fixed flow.
- */
+
 public abstract class InvoiceCreationTemplate {
 
     public final Invoice process(Long sourceId) {

@@ -1,8 +1,5 @@
 package com.autofuellanka.systemmanager.service.payment;
 
-/**
- * Result object for payment processing operations
- */
 public class PaymentProcessingResult {
     private boolean success;
     private String message;

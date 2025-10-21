@@ -4,10 +4,6 @@ import com.autofuellanka.systemmanager.model.Payment;
 import com.autofuellanka.systemmanager.model.PaymentMethod;
 import org.springframework.stereotype.Component;
 
-/**
- * Cash payment processing strategy
- * Handles cash payments with immediate settlement
- */
 @Component
 public class CashPaymentStrategy implements PaymentProcessingStrategy {
     
@@ -25,9 +21,7 @@ public class CashPaymentStrategy implements PaymentProcessingStrategy {
     @Override
     public PaymentProcessingResult processPayment(Payment payment) {
         try {
-            // Cash payments are processed immediately
-            // In a real system, you might want to log cash handling procedures
-            
+
             // Generate a simple transaction ID for cash payments
             String transactionId = "CASH-" + System.currentTimeMillis();
             

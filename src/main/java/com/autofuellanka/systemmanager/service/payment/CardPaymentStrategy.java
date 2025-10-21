@@ -4,10 +4,6 @@ import com.autofuellanka.systemmanager.model.Payment;
 import com.autofuellanka.systemmanager.model.PaymentMethod;
 import org.springframework.stereotype.Component;
 
-/**
- * Card payment processing strategy
- * Handles credit/debit card payments with additional validation
- */
 @Component
 public class CardPaymentStrategy implements PaymentProcessingStrategy {
     
@@ -27,9 +23,7 @@ public class CardPaymentStrategy implements PaymentProcessingStrategy {
         if (payment.getReference() == null || payment.getReference().trim().isEmpty()) {
             return false;
         }
-        
-        // Additional card-specific validations could be added here
-        // e.g., card number format, expiry date, CVV, etc.
+
         
         return true;
     }
@@ -37,9 +31,7 @@ public class CardPaymentStrategy implements PaymentProcessingStrategy {
     @Override
     public PaymentProcessingResult processPayment(Payment payment) {
         try {
-            // Simulate card payment processing
-            // In a real system, this would integrate with payment gateways
-            
+
             // Validate card details (simplified)
             if (!isValidCardReference(payment.getReference())) {
                 return PaymentProcessingResult.failure("Invalid card transaction reference");
@@ -68,11 +60,7 @@ public class CardPaymentStrategy implements PaymentProcessingStrategy {
     public PaymentMethod getPaymentMethod() {
         return PaymentMethod.CARD;
     }
-    
-    /**
-     * Validate card transaction reference format
-     * In a real system, this would validate against actual card processing APIs
-     */
+
     private boolean isValidCardReference(String reference) {
         // Simple validation - in reality, this would be more complex
         return reference != null && reference.length() >= 10 && reference.matches("^[A-Za-z0-9]+$");

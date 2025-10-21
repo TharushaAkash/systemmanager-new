@@ -5,10 +5,6 @@ import com.autofuellanka.systemmanager.model.PaymentMethod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Context class that uses the Strategy pattern for payment processing
- * This is the main entry point for payment processing operations
- */
 @Service
 public class PaymentProcessor {
     
@@ -18,12 +14,7 @@ public class PaymentProcessor {
     public PaymentProcessor(PaymentStrategyFactory strategyFactory) {
         this.strategyFactory = strategyFactory;
     }
-    
-    /**
-     * Process a payment using the appropriate strategy
-     * @param payment The payment to process
-     * @return Processing result
-     */
+
     public PaymentProcessingResult processPayment(Payment payment) {
         if (payment == null) {
             return PaymentProcessingResult.failure("Payment cannot be null");
@@ -60,12 +51,7 @@ public class PaymentProcessor {
             return PaymentProcessingResult.failure("Payment processing failed: " + e.getMessage());
         }
     }
-    
-    /**
-     * Get the account name for a payment method (for ledger entries)
-     * @param paymentMethod The payment method
-     * @return Account name for double-entry bookkeeping
-     */
+
     public String getAccountNameForPaymentMethod(PaymentMethod paymentMethod) {
         try {
             PaymentProcessingStrategy strategy = strategyFactory.getStrategy(paymentMethod);
@@ -75,12 +61,7 @@ public class PaymentProcessor {
             return "UNKNOWN_PAYMENT";
         }
     }
-    
-    /**
-     * Validate a payment without processing it
-     * @param payment The payment to validate
-     * @return true if payment is valid, false otherwise
-     */
+
     public boolean validatePayment(Payment payment) {
         if (payment == null || payment.getMethod() == null) {
             return false;
@@ -93,11 +74,7 @@ public class PaymentProcessor {
             return false;
         }
     }
-    
-    /**
-     * Get all supported payment methods
-     * @return List of supported payment methods
-     */
+
     public java.util.List<PaymentMethod> getSupportedPaymentMethods() {
         return strategyFactory.getSupportedPaymentMethods();
     }
